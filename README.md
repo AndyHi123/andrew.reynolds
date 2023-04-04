@@ -1,7 +1,7 @@
-- 👋 Hi, I’m @Andrew Reynolds
-- 👀 I’m interested in web development and software programming.
-- 🌱 I’m currently learning HTML and C. Java is my strong suit. 
-- 💞️ I’m looking to collaborate on projects that need a structure or any kind of design work.
+- 👋 Hi, I’m Andrew Reynolds
+- 👀 I’m interested in web development, audio production, and software programming.
+- 🌱 I’m currently learning Java and C. I have experience in python, C, and SQL.
+- 💞️ I’m looking to collaborate on projects that work with sound production or even start up applications.
 - 📫 How to reach me: andrewr11231244@gmail.com
 
 <!---
