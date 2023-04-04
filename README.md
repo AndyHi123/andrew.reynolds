@@ -1,4 +1,4 @@
-- 👋 Hi, I’m @AndyHi123
+- 👋 Hi, I’m @Andrew Reynolds
 - 👀 I’m interested in web development and software programming.
 - 🌱 I’m currently learning HTML and C. Java is my strong suit. 
 - 💞️ I’m looking to collaborate on projects that need a structure or any kind of design work.
