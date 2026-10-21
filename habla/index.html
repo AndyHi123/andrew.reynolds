@@ -347,6 +347,9 @@
 <script>
 'use strict';
 
+const APP_VERSION = 4;
+let pendingReload = false; // set when an update arrives mid-lesson
+
 /* ---------- Mascot (Pico the fox) ---------- */
 const FOX = `<svg class="mascot" viewBox="0 0 120 120" aria-hidden="true">
   <path d="M20 14 L52 40 L26 64 Z" fill="#f2711f"/>
@@ -913,6 +916,7 @@ function transferSheet(onDone) {
 let tab = 'learn';
 let heartTimer;
 function goHome(t = tab) {
+  if (pendingReload) return location.reload();
   tab = t;
   syncHearts(); save();
   show('home');
@@ -1085,7 +1089,8 @@ function profileHTML() {
       <div class="setting"><span>Restore from backup</span><button class="price" id="pf-import">Paste code</button></div>
       <div class="setting"><span style="color:var(--red)">Reset all progress</span><button class="price" style="color:var(--red)" id="pf-reset">Reset</button></div>
     </div>
-    <p style="color:var(--muted);font-size:.8rem;text-align:center">Progress saves automatically on this device. Use “Copy code” to move it to another phone or browser.</p>`;
+    <p style="color:var(--muted);font-size:.8rem;text-align:center">Progress saves automatically on this device. Use “Copy code” to move it to another phone or browser.</p>
+    <p style="color:var(--muted);font-size:.8rem;text-align:center;margin-top:8px">Version ${APP_VERSION} · ${LESSONS.length} lessons</p>`;
 }
 function bindProfile() {
   document.querySelectorAll('[data-goal]').forEach(b => b.onclick = () => { S.goal = +b.dataset.goal; save(); sfx.tap(); goHome('profile'); });
@@ -1519,8 +1524,19 @@ if (S.started) goHome('learn'); else renderWelcome();
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') { syncHearts(); syncStreak(); save(); if (!$('#home').classList.contains('hidden')) renderTop(); }
 });
+// When a new version is published, the new service worker takes over and
+// the page reloads into it (waiting until any lesson in progress is finished)
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) return;
+    if (L) pendingReload = true; else location.reload();
+  });
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+    }).catch(() => {});
+  });
 }
 </script>
 </body>
