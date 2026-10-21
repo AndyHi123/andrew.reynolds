@@ -678,7 +678,7 @@ function renderWelcome(step = 0) {
       <button class="btn text" id="w-import">I have a backup code</button></div>`;
     el.querySelector('#w-go').onclick = () => renderWelcome(1);
     el.querySelector('#w-import').onclick = importSheet;
-  } else {
+  } else if (step === 1) {
     const goals = [[10, 'Casual'], [20, 'Regular'], [30, 'Serious'], [50, 'Intense']];
     el.innerHTML = `<div class="center-col welcome" style="justify-content:flex-start;padding-top:calc(40px + env(safe-area-inset-top))">
       ${FOX.replace('class="mascot"', 'class="mascot" style="width:100px"')}
@@ -689,9 +689,43 @@ function renderWelcome(step = 0) {
       S.goal = +b.dataset.g; sfx.tap();
       el.querySelectorAll('[data-g]').forEach(x => x.classList.toggle('sel', x === b));
     });
-    el.querySelector('#w-done').onclick = () => { S.started = true; save(); goHome('learn'); };
+    el.querySelector('#w-done').onclick = () => renderWelcome(2);
+  } else {
+    el.innerHTML = `<div class="center-col welcome">${FOX.replace('class="mascot"', 'class="mascot" style="width:100px"')}
+      <h2 class="sec">Have you been learning Spanish already?</h2>
+      <div class="goal-list">
+        <button class="choice" id="w-new"><b>I’m new to Spanish</b><span>Start from the beginning</span></button>
+        <button class="choice" id="w-transfer"><b>I’m coming from another app</b><span>Keep my streak, skip ahead</span></button>
+      </div></div>`;
+    const finish = () => { S.started = true; save(); goHome('learn'); };
+    el.querySelector('#w-new').onclick = finish;
+    el.querySelector('#w-transfer').onclick = () => transferSheet(finish);
   }
   show('welcome');
+}
+
+// Carry over a streak from another app and optionally unlock every lesson
+function transferSheet(onDone) {
+  const o = sheet(`<div class="big-ico">🔥</div><h2>Bring your progress</h2>
+    <p>Enter your current streak and we’ll pick it up from there.</p>
+    <input id="tr-streak" type="number" inputmode="numeric" min="0" max="100000" value="${S.streak || ''}" placeholder="Streak in days"
+      style="width:100%;font:inherit;font-size:1.6rem;font-weight:800;text-align:center;color:var(--orange);background:var(--surface-2);border:2px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px">
+    <div class="setting"><span>I already practiced today</span><button class="toggle on" id="tr-today" aria-label="Already practiced today"></button></div>
+    <div class="setting" style="margin-bottom:18px"><span>Skip the beginner lessons<br><small style="color:var(--muted);font-weight:600">Unlocks all ${LESSONS.length} lessons</small></span><button class="toggle on" id="tr-skip" aria-label="Unlock all lessons"></button></div>
+    <button class="btn" id="tr-go">Save</button>`, { center: true });
+  ['#tr-today', '#tr-skip'].forEach(id => { const t = o.querySelector(id); t.onclick = () => { t.classList.toggle('on'); sfx.tap(); }; });
+  o.querySelector('#tr-go').onclick = () => {
+    const n = Math.max(0, Math.min(100000, parseInt(o.querySelector('#tr-streak').value, 10) || 0));
+    if (n > 0) {
+      const d = new Date();
+      if (!o.querySelector('#tr-today').classList.contains('on')) d.setDate(d.getDate() - 1);
+      S.streak = n; S.lastDay = dayKey(d); S.longest = Math.max(S.longest, n);
+    }
+    if (o.querySelector('#tr-skip').classList.contains('on')) LESSONS.forEach(l => { if (!S.done[l.id]) S.done[l.id] = 1; });
+    save(); closeSheet(); sfx.done();
+    toast(n ? `🔥 ${n} day streak saved` : 'Saved');
+    onDone();
+  };
 }
 
 /* ---------- Home ---------- */
@@ -865,6 +899,7 @@ function profileHTML() {
     <div class="card"><h3>Daily goal</h3><div class="seg">${[10, 20, 30, 50].map(g => `<button data-goal="${g}" class="${S.goal === g ? 'on' : ''}">${g} XP</button>`).join('')}</div></div>
     <div class="card">
       <div class="setting"><span>Sound effects & voice</span><button class="toggle ${S.sound ? 'on' : ''}" id="pf-sound" aria-label="Toggle sound"></button></div>
+      <div class="setting"><span>Transfer from another app</span><button class="price" id="pf-transfer">Set streak</button></div>
       <div class="setting"><span>Back up progress</span><button class="price" id="pf-export">Copy code</button></div>
       <div class="setting"><span>Restore from backup</span><button class="price" id="pf-import">Paste code</button></div>
       <div class="setting"><span style="color:var(--red)">Reset all progress</span><button class="price" style="color:var(--red)" id="pf-reset">Reset</button></div>
@@ -876,6 +911,7 @@ function bindProfile() {
   $('#pf-sound').onclick = () => { S.sound = !S.sound; save(); if (S.sound) sfx.ok(); goHome('profile'); };
   $('#pf-export').onclick = exportSheet;
   $('#pf-import').onclick = importSheet;
+  $('#pf-transfer').onclick = () => transferSheet(() => goHome('profile'));
   $('#pf-reset').onclick = () => confirmSheet({ icon: '⚠️', title: 'Reset progress?', text: 'This erases your XP, streak, gems and all completed lessons. This can’t be undone.', yes: 'Reset everything', danger: true,
     onYes: () => { S = Object.assign({}, DEFAULTS, { xpByDay: {}, done: {}, chests: {}, heartsTs: Date.now() }); save(); renderWelcome(); } });
 }
