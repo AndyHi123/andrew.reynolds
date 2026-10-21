@@ -1,81 +1,141 @@
 <!DOCTYPE html>
 <html lang="en-US">
 <head>
- <meta charset="utf-8">
- <meta name="viewport" content="width=device-width, initial-scale=1">
- <title>Andrew's Resume</title>
-
- <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="resumestyles">
-
-  <link rel="resumestyles" href="resumestyles.css">
-  <style>
-  @import url(resumestyles.css);
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Andrew Reynolds — Resume</title>
+  <meta name="description" content="Andrew Reynolds — music producer, composer and web developer.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="resumestyles.css">
 </head>
 
 <body>
+  <main class="page">
+    <a class="back" href="../">&larr; Home</a>
 
-  <div class="contact-info"></div>
-                <h4>Andrew Reynolds</h4>
+    <header class="hero">
+      <div>
+        <h1>Andrew Reynolds</h1>
+        <p class="tagline">Music Producer &middot; Composer &middot; Web Developer</p>
+        <ul class="contact">
+          <li><a href="tel:+14072274829">(407) 227-4829</a></li>
+          <li><a href="mailto:andrewr11231244@gmail.com">andrewr11231244@gmail.com</a></li>
+        </ul>
+      </div>
+    </header>
 
-                    <h2>Cell: <span class="tel">(407) 227-4829</span><br />
-                    Email: <a class="email" href="mailto:andrewr11231244@gmail.com">andrewr11231244@gmail.com</a></h2>
+    <section class="section">
+      <h2>Summary</h2>
+      <p>Growing up, I was always curious about what technology would become, and that curiosity has never stopped. I'm constantly thinking, innovating and creating, so I've chosen to embrace that drive by studying both Computer Science and Music.</p>
+      <p>My goal is to bring programming and music together in my future work. In the meantime I keep writing music in the hope of bringing peace, hope and joy to the people who hear it, and I spend much of my free time exploring new musical styles.</p>
+    </section>
 
+    <section class="section">
+      <h2>Skills</h2>
+      <div class="group">
+        <h3>Music</h3>
+        <ul class="chips">
+          <li>Piano</li>
+          <li>Guitar</li>
+          <li>Music Production</li>
+          <li>Composition</li>
+          <li>Mixing &amp; Mastering</li>
+          <li>Studio Setup</li>
+        </ul>
+      </div>
+      <div class="group">
+        <h3>Programming</h3>
+        <ul class="chips">
+          <li>JavaScript</li>
+          <li>HTML</li>
+          <li>CSS</li>
+          <li>Python</li>
+          <li>C</li>
+          <li>Web Design</li>
+        </ul>
+      </div>
+    </section>
 
+    <section class="section">
+      <h2>Projects</h2>
+      <div class="project">
+        <div class="project-head">
+          <h3>Workout Tracker</h3>
+          <a class="no-print" href="../workout-tracker/">Open the app &rarr;</a>
+        </div>
+        <p>An Upper/Lower training log for the phone. It cycles through Upper, Lower and Rest days, remembers what you lifted last time, keeps a rest timer, flags personal records and charts estimated one-rep max per exercise. It installs to the Home Screen, works offline and stores everything on the device, with JSON backup and restore.</p>
+        <ul class="chips">
+          <li>JavaScript</li>
+          <li>HTML</li>
+          <li>CSS</li>
+          <li>Progressive Web App</li>
+          <li>Service Worker</li>
+          <li>localStorage</li>
+        </ul>
+        <div class="shots">
+          <figure>
+            <a href="projects/workout-today.jpg"><img src="projects/workout-today.jpg" alt="Workout Tracker: logging today's Upper workout" loading="lazy" width="600" height="1298"></a>
+            <figcaption>Logging a workout</figcaption>
+          </figure>
+          <figure>
+            <a href="projects/workout-history.jpg"><img src="projects/workout-history.jpg" alt="Workout Tracker: history of past workouts" loading="lazy" width="600" height="1298"></a>
+            <figcaption>Workout history</figcaption>
+          </figure>
+          <figure>
+            <a href="projects/workout-detail.jpg"><img src="projects/workout-detail.jpg" alt="Workout Tracker: progress chart for one exercise" loading="lazy" width="600" height="1298"></a>
+            <figcaption>Progress chart</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
 
-            <h3>Summary</h3>
+    <div class="grid-2 grid-wrap">
+      <section class="section">
+        <h2>Software</h2>
+        <ul class="list">
+          <li>FL Studio</li>
+          <li>Logic Pro X</li>
+          <li>Adobe Photoshop</li>
+          <li>Microsoft Word</li>
+          <li>Microsoft PowerPoint</li>
+        </ul>
+      </section>
 
-  <p><br>Growing up, I was always curious as to what technology would become. To this day, that curiosity still has not stopped. I do not stop thinking, innovating, and creating. I could never stop my flow of creativity, so I've decided to embrace it. I am glad that I chose to learn Computer Science and Music. I have plans to combine my knowledge of programming and music in the near future. I continue to write music in hopes of bringing peace, hope, and joy for all.   </p>
-  <p>I spend most of my free time learning about different styles of music. It keeps me busy and I enjoy it. <br></p>
+      <section class="section">
+        <h2>Certifications</h2>
+        <ul class="list">
+          <li>Microsoft Word</li>
+          <li>Microsoft PowerPoint</li>
+        </ul>
+      </section>
+    </div>
 
+    <section class="section no-print">
+      <h2>Work Samples</h2>
+      <div class="samples">
+        <a class="sample" href="YouTubeMusic.html">
+          <span>Sample 1<small>Video &middot; YouTube</small></span>
+        </a>
+        <a class="sample" href="YouTubeMusic2.html">
+          <span>Sample 2<small>Video &middot; YouTube</small></span>
+        </a>
+        <a class="sample" href="YouTubeMusic3.html">
+          <span>ChillAx<small>Track &middot; SoundCloud</small></span>
+        </a>
+      </div>
+    </section>
 
+    <section class="section">
+      <h2>Find Me Online</h2>
+      <div class="social">
+        <a href="https://soundcloud.com/andy-hi-975339171"><img src="soundcloud.png" alt="">SoundCloud</a>
+        <a href="https://www.instagram.com/andyhi._/"><img src="instagram.png" alt="">Instagram</a>
+      </div>
+    </section>
 
-               <h3>Skill Sets</h3>
-                   <ul>
-                     <li>Piano Player</li>
-                     <li>Guitar Player</li>
-                     <li>Music Producer</li>
-                     <li>Music Composer</li>
-                     <li>Mixing/Mastering</li>
-			   <li>Music Studio Setup</li>
-                     <li>Javascript</li>
-                     <li>HTML</li>
-                     <li>CSS</li>
-                     <li>Python</li>
-                     <li>C</li>
-                     <li>Web Design</li>
-
-
-                   </ul>
-
-                   <h3>Software Experience</h3>
-                           <ul>
-                               <li>Photoshop</li>
-                               <li>FL Studio</li>
-                               <li>Logic Pro X</li>
-                               <li>Microsoft Word</li>
-                               <li>Microsoft PowerPoint</li>
-                           </ul>
-
-                <h3>Certifications</h3>
-                    <ul>
-                        <li>Microsoft Word</li>
-                        <li>Microsoft PowerPoint</li>
-                    </ul>
-
-                <h3>Social Media</h3>
-
-
-                    <a href="https://soundcloud.com/andy-hi-975339171?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing"><img src="soundcloud.png" alt="logo" width="100" height="100"></a>
-                    <a href="https://www.instagram.com/andyhi._/"><img src="instagram.png" alt="logo" width="100" height="100"></a>
-
-                      <h3>Work Samples</h3>
-
-                <a href="YouTubeMusic.html"><img src="andrewlogo.jpg" width="300" alt="My Image" /></a>
-                <a href="YouTubeMusic2.html"><img src="andrew4.png" width="300" alt="My Image" /></a>
-                <a href="YouTubeMusic3.html"><img src="andrew5.png" width="300" alt="My Image" /></a>
-
-
-
+    <footer>&copy; Andrew Reynolds</footer>
+  </main>
 </body>
 </html>
