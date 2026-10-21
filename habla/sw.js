@@ -1,6 +1,6 @@
 // Caches the app shell so it opens offline. Lesson progress lives in
 // localStorage on the device and is never touched by the service worker.
-const CACHE = 'habla-v2';
+const CACHE = 'habla-v3';
 const ASSETS = [
   './',
   './index.html',

@@ -367,7 +367,7 @@ const FOX = `<svg class="mascot" viewBox="0 0 120 120" aria-hidden="true">
    words:     [spanish, english, emoji?]
    sentences: [spanish, english, [extra accepted English], [extra accepted Spanish]] */
 const COURSE = [
-  { title: 'Hello and goodbye', desc: 'Greet people and talk about food', c: '#4fbf26', cd: '#3d9a1b', lessons: [
+  { title: 'Hello and goodbye', level: 'Beginner', desc: 'Greet people and talk about food', c: '#4fbf26', cd: '#3d9a1b', lessons: [
     { title: 'Greetings', icon: '👋',
       words: [['hola','hello','🙋'],['adiós','goodbye','👋'],['gracias','thank you','🙏'],['por favor','please','🥺'],['sí','yes','👍'],['no','no','👎'],['buenos días','good morning','🌅'],['¿cómo estás?','how are you?']],
       sentences: [
@@ -408,7 +408,7 @@ const COURSE = [
         ['Un perro y un gato.','A dog and a cat.'],
       ] },
   ] },
-  { title: 'Describe your world', desc: 'Colors, family, numbers and feelings', c: '#2aa7e8', cd: '#1a86bf', lessons: [
+  { title: 'Describe your world', level: 'Beginner', desc: 'Colors, family, numbers and feelings', c: '#2aa7e8', cd: '#1a86bf', lessons: [
     { title: 'Colors', icon: '🎨',
       words: [['rojo','red','🔴'],['azul','blue','🔵'],['verde','green','🟢'],['amarillo','yellow','🟡'],['negro','black','⚫'],['blanco','white','⚪'],['es','is']],
       sentences: [
@@ -446,7 +446,7 @@ const COURSE = [
         ['Tengo hambre.','I am hungry.',[],['Yo tengo hambre.']],
       ] },
   ] },
-  { title: 'Out and about', desc: 'Places, time, actions and meeting people', c: '#a465f0', cd: '#8248cc', lessons: [
+  { title: 'Out and about', level: 'Beginner', desc: 'Places, time, actions and meeting people', c: '#a465f0', cd: '#8248cc', lessons: [
     { title: 'Places', icon: '🏠',
       words: [['la casa','the house','🏠'],['la escuela','the school','🏫'],['el parque','the park','🌳'],['la playa','the beach','🏖️'],['el restaurante','the restaurant','🍽️'],['voy','I go']],
       sentences: [
@@ -484,6 +484,158 @@ const COURSE = [
         ['¿De dónde eres?','Where are you from?'],
       ] },
   ] },
+  { title: 'Looking back', level: 'Intermediate', desc: 'Talk about what happened and what used to be', c: '#ff9a2e', cd: '#e07a10', lessons: [
+    { title: 'What I did', icon: '🍝',
+      words: [['comí','I ate','🍝'],['bebí','I drank','🥤'],['hablé','I spoke','🗣️'],['fui','I went','🚶'],['ayer','yesterday','📆'],['anoche','last night','🌃']],
+      sentences: [
+        ['Ayer comí pescado.','Yesterday I ate fish.',['I ate fish yesterday.']],
+        ['Anoche bebí mucha agua.','Last night I drank a lot of water.',['I drank a lot of water last night.','Last night I drank lots of water.']],
+        ['Hablé con mi madre.','I spoke with my mother.',['I talked with my mother.','I spoke to my mother.','I talked to my mother.']],
+        ['Ayer fui al parque.','Yesterday I went to the park.',['I went to the park yesterday.']],
+        ['¿Qué comiste ayer?','What did you eat yesterday?'],
+      ] },
+    { title: 'What happened', icon: '🛬',
+      words: [['llegó','arrived','🛬'],['salimos','we left','🚪'],['vimos','we saw','👀'],['compraron','they bought','🛍️'],['la semana pasada','last week','🗓️']],
+      sentences: [
+        ['El tren llegó tarde.','The train arrived late.',['The train came late.']],
+        ['Salimos de la casa temprano.','We left the house early.'],
+        ['Vimos una película anoche.','We saw a movie last night.',['We watched a movie last night.','We saw a film last night.','We watched a film last night.']],
+        ['Ellos compraron un coche nuevo.','They bought a new car.',[],['Compraron un coche nuevo.']],
+        ['La semana pasada mi hermana viajó a España.','Last week my sister traveled to Spain.',['Last week my sister travelled to Spain.','My sister traveled to Spain last week.','My sister travelled to Spain last week.']],
+      ] },
+    { title: 'Used to', icon: '🧒',
+      words: [['era','I was / it was','🧒'],['vivía','I used to live','🏡'],['jugaba','I used to play','⚽'],['cuando','when','⏳'],['siempre','always','♾️'],['antes','before','⏪']],
+      sentences: [
+        ['Cuando era niño, vivía en el campo.','When I was a child, I lived in the country.',['When I was a boy, I lived in the country.','When I was a child, I used to live in the country.','When I was a child, I lived in the countryside.','When I was a kid, I lived in the country.']],
+        ['Siempre jugaba al fútbol con mis amigos.','I always played soccer with my friends.',['I always played football with my friends.','I always used to play soccer with my friends.','I always used to play football with my friends.']],
+        ['Mi abuela hacía pan los domingos.','My grandmother made bread on Sundays.',['My grandmother used to make bread on Sundays.','My grandma made bread on Sundays.','My grandma used to make bread on Sundays.']],
+        ['Hacía mucho frío.','It was very cold.',['It was really cold.']],
+        ['Antes no me gustaba el café.','Before, I did not like coffee.',['I did not like coffee before.','I used to not like coffee.','I did not use to like coffee.']],
+      ] },
+    { title: 'Telling a story', icon: '📖',
+      words: [['de repente','suddenly','⚡'],['mientras','while','⏱️'],['empezó a','started to'],['llover','to rain','🌧️'],['perdí','I lost','🔑'],['encontré','I found','🔍']],
+      sentences: [
+        ['Mientras caminaba, empezó a llover.','While I was walking, it started to rain.',['While I was walking, it began to rain.','While I walked, it started to rain.','While I was walking, it started raining.']],
+        ['De repente, el perro salió corriendo.','Suddenly, the dog ran out.',['Suddenly, the dog ran off.','Suddenly, the dog ran away.']],
+        ['Perdí mis llaves en el autobús.','I lost my keys on the bus.'],
+        ['Por fin encontré mi teléfono.','I finally found my phone.',['Finally I found my phone.','At last I found my phone.']],
+        ['Estaba leyendo cuando sonó el teléfono.','I was reading when the phone rang.'],
+      ] },
+  ] },
+  { title: 'Plans and wishes', level: 'Intermediate', desc: 'Future, conditional and the subjunctive', c: '#14b8a6', cd: '#0f8f80', lessons: [
+    { title: 'Going to', icon: '🎯',
+      words: [['voy a','I am going to','🎯'],['vamos a','we are going to'],['este fin de semana','this weekend','🎉'],['el próximo año','next year','📅'],['viajar','to travel','✈️'],['estudiar','to study','📚']],
+      sentences: [
+        ['Voy a estudiar esta noche.','I am going to study tonight.'],
+        ['Vamos a viajar el próximo año.','We are going to travel next year.'],
+        ['Este fin de semana voy a descansar.','This weekend I am going to rest.',['I am going to rest this weekend.','This weekend I am going to relax.']],
+        ['¿Qué vas a hacer mañana?','What are you going to do tomorrow?'],
+        ['Ella va a cocinar para nosotros.','She is going to cook for us.'],
+      ] },
+    { title: 'The future', icon: '🔮',
+      words: [['será','it will be','🔮'],['tendré','I will have'],['iré','I will go','🚀'],['podremos','we will be able to'],['lloverá','it will rain','☔'],['algún día','someday','🌠']],
+      sentences: [
+        ['Mañana lloverá en la ciudad.','Tomorrow it will rain in the city.',['It will rain in the city tomorrow.']],
+        ['Algún día iré a Japón.','Someday I will go to Japan.',['One day I will go to Japan.','I will go to Japan someday.','I will go to Japan one day.']],
+        ['Será un día largo.','It will be a long day.'],
+        ['Tendré más tiempo el lunes.','I will have more time on Monday.'],
+        ['Podremos hablar después de la clase.','We will be able to talk after class.',['We will be able to talk after the class.','We can talk after class.']],
+      ] },
+    { title: 'Would and could', icon: '💭',
+      words: [['me gustaría','I would like','🙏'],['podría','could','🤲'],['sería','it would be','💭'],['si tuviera','if I had','💰'],['viviría','I would live','🏝️']],
+      sentences: [
+        ['Me gustaría un café, por favor.','I would like a coffee, please.'],
+        ['¿Podría ayudarme?','Could you help me?',['Can you help me?']],
+        ['Sería bueno descansar un poco.','It would be good to rest a little.',['It would be nice to rest a little.','It would be good to rest a bit.']],
+        ['Si tuviera dinero, viviría en la playa.','If I had money, I would live at the beach.',['If I had money, I would live on the beach.','If I had money, I would live by the beach.']],
+        ['Me gustaría aprender a cocinar.','I would like to learn to cook.',['I would like to learn how to cook.']],
+      ] },
+    { title: 'Hopes', icon: '🤞',
+      words: [['espero que','I hope that','🤞'],['quiero que','I want (someone) to'],['ojalá','hopefully','🌈'],['es importante que','it is important that','❗'],['la fiesta','the party','🥳']],
+      sentences: [
+        ['Espero que tengas un buen día.','I hope you have a good day.',['I hope that you have a good day.','I hope you have a nice day.']],
+        ['Ojalá no llueva mañana.','Hopefully it will not rain tomorrow.',['I hope it does not rain tomorrow.','Hopefully it does not rain tomorrow.']],
+        ['Quiero que vengas a mi fiesta.','I want you to come to my party.'],
+        ['Es importante que duermas bien.','It is important that you sleep well.',['It is important for you to sleep well.']],
+        ['Mi madre quiere que estudie más.','My mother wants me to study more.'],
+      ] },
+  ] },
+  { title: 'Travel', level: 'Intermediate', desc: 'Airports, hotels, restaurants and directions', c: '#f2557a', cd: '#cc3a5e', lessons: [
+    { title: 'Airport', icon: '✈️',
+      words: [['el vuelo','the flight','✈️'],['el pasaporte','the passport','🛂'],['la maleta','the suitcase','🧳'],['la puerta','the gate','🚪'],['el boleto','the ticket','🎫'],['facturar','to check (luggage)']],
+      sentences: [
+        ['Mi vuelo sale a las nueve.','My flight leaves at nine.',['My flight departs at nine.',"My flight leaves at nine o'clock."]],
+        ['¿Dónde está la puerta doce?','Where is gate twelve?'],
+        ['Necesito facturar mi maleta.','I need to check my suitcase.',['I need to check in my suitcase.','I need to check my bag.']],
+        ['Aquí está mi pasaporte.','Here is my passport.'],
+        ['El vuelo tiene una hora de retraso.','The flight is one hour late.',['The flight is an hour late.','The flight is delayed one hour.','The flight is delayed an hour.','The flight is delayed by an hour.']],
+      ] },
+    { title: 'Hotel', icon: '🏨',
+      words: [['la habitación','the room','🛏️'],['la llave','the key','🔑'],['reservar','to book','📝'],['el desayuno','the breakfast','🥐'],['incluido','included','✅']],
+      sentences: [
+        ['Quiero reservar una habitación para dos noches.','I want to book a room for two nights.',['I would like to book a room for two nights.','I want to reserve a room for two nights.']],
+        ['¿El desayuno está incluido?','Is breakfast included?',['Is the breakfast included?']],
+        ['Tengo una reserva a nombre de García.','I have a reservation under the name García.',['I have a reservation under García.','I have a booking under the name García.']],
+        ['La llave no funciona.','The key does not work.',['The key is not working.']],
+        ['¿A qué hora es la salida?','What time is checkout?',['What time is check-out?','At what time is checkout?']],
+      ] },
+    { title: 'Restaurant', icon: '🍽️',
+      words: [['la cuenta','the check','🧾'],['el menú','the menu','📋'],['pedir','to order','🛎️'],['la propina','the tip','💵'],['sin','without','🚫'],['picante','spicy','🌶️']],
+      sentences: [
+        ['Una mesa para cuatro, por favor.','A table for four, please.'],
+        ['¿Me trae la cuenta, por favor?','Can you bring me the check, please?',['Could you bring me the check, please?','Can you bring me the bill, please?','Could you bring me the bill, please?']],
+        ['Quisiera pedir la sopa sin cebolla.','I would like to order the soup without onion.',['I would like to order the soup without onions.']],
+        ['¿Este plato es picante?','Is this dish spicy?'],
+        ['La comida estaba deliciosa.','The food was delicious.'],
+      ] },
+    { title: 'Directions', icon: '🧭',
+      words: [['a la derecha','to the right','➡️'],['a la izquierda','to the left','⬅️'],['todo recto','straight ahead','⬆️'],['cerca','near','📍'],['lejos','far','🗺️'],['la esquina','the corner','↪️']],
+      sentences: [
+        ['Gire a la derecha en la esquina.','Turn right at the corner.',['Turn to the right at the corner.']],
+        ['Siga todo recto dos calles.','Go straight ahead for two blocks.',['Go straight for two blocks.','Go straight ahead two blocks.','Go straight two blocks.','Continue straight for two blocks.']],
+        ['¿Está lejos el museo?','Is the museum far?',['Is the museum far away?']],
+        ['La farmacia está cerca de aquí.','The pharmacy is near here.',['The pharmacy is close to here.','The pharmacy is nearby.','The drugstore is near here.']],
+        ['Perdone, ¿dónde está la estación?','Excuse me, where is the station?',['Sorry, where is the station?']],
+      ] },
+  ] },
+  { title: 'Real conversations', level: 'Advanced', desc: 'Opinions, work, health and idioms', c: '#6366f1', cd: '#4b4fd1', lessons: [
+    { title: 'Opinions', icon: '🗨️',
+      words: [['creo que','I think that','💭'],['estoy de acuerdo','I agree','🤝'],['me parece','it seems to me'],['en mi opinión','in my opinion','🗨️'],['tienes razón','you are right','✔️']],
+      sentences: [
+        ['Creo que es una buena idea.','I think it is a good idea.',['I think that it is a good idea.','I think that is a good idea.']],
+        ['Tienes razón, lo siento.','You are right, I am sorry.'],
+        ['No estoy de acuerdo contigo.','I do not agree with you.',['I disagree with you.']],
+        ['En mi opinión, la película es aburrida.','In my opinion, the movie is boring.',['In my opinion, the film is boring.']],
+        ['Me parece un poco caro.','It seems a bit expensive to me.',['It seems a little expensive to me.','It seems a bit expensive.','It seems a little expensive.']],
+      ] },
+    { title: 'Work', icon: '💼',
+      words: [['el trabajo','the job','💼'],['la reunión','the meeting','👥'],['el jefe','the boss','🧑‍💼'],['ganar','to earn','💰'],['el correo','the email','📧']],
+      sentences: [
+        ['Tengo una reunión a las tres.','I have a meeting at three.',["I have a meeting at three o'clock."]],
+        ['Mi jefe está de vacaciones.','My boss is on vacation.',['My boss is on holiday.']],
+        ['Te mando el correo esta tarde.','I will send you the email this afternoon.',['I am sending you the email this afternoon.','I will send you the email this evening.']],
+        ['Trabajo desde casa los viernes.','I work from home on Fridays.'],
+        ['Busco un trabajo nuevo.','I am looking for a new job.',['I am searching for a new job.']],
+      ] },
+    { title: 'Health', icon: '🩺',
+      words: [['me duele','it hurts me','🤕'],['la cabeza','the head','🧠'],['el médico','the doctor','🩺'],['la fiebre','the fever','🤒'],['enfermo','sick','🤢']],
+      sentences: [
+        ['Me duele la cabeza.','My head hurts.',['I have a headache.']],
+        ['Necesito ir al médico.','I need to go to the doctor.'],
+        ['Mi hijo tiene fiebre.','My son has a fever.'],
+        ['Estoy enfermo desde el lunes.','I have been sick since Monday.',['I have been ill since Monday.']],
+        ['Tome esta pastilla dos veces al día.','Take this pill twice a day.',['Take this pill two times a day.','Take this tablet twice a day.']],
+      ] },
+    { title: 'Idioms', icon: '🍰',
+      words: [['ser pan comido','to be a piece of cake','🍰'],['costar un ojo de la cara','to cost an arm and a leg','💸'],['tomar el pelo','to pull someone’s leg','😜'],['estar en las nubes','to daydream','☁️'],['no tener pelos en la lengua','to speak your mind','👅']],
+      sentences: [
+        ['El examen fue pan comido.','The exam was a piece of cake.',['The test was a piece of cake.','The exam was very easy.']],
+        ['Ese coche cuesta un ojo de la cara.','That car costs an arm and a leg.'],
+        ['¿Me estás tomando el pelo?','Are you pulling my leg?',['Are you kidding me?','Are you joking?']],
+        ['Hoy estás en las nubes.','Today you are daydreaming.',['You are daydreaming today.','Today your head is in the clouds.','Your head is in the clouds today.']],
+        ['Mi abuela no tiene pelos en la lengua.','My grandmother speaks her mind.',['My grandma speaks her mind.','My grandmother does not mince words.']],
+      ] },
+  ] },
 ];
 
 // Flat list of lessons with their unit index
@@ -503,11 +655,37 @@ const GLOSS = {
   español: 'Spanish', inglés: 'English', te: 'yourself', llamas: 'you call', cómo: 'how', dónde: 'where',
   gatos: 'cats', manzanas: 'apples', peces: 'fish (plural)', me: 'myself', llamo: 'I call', gusto: 'pleasure',
   mucho: 'much', días: 'days', buenos: 'good',
+  que: 'that', qué: 'what', con: 'with', para: 'for', por: 'for / by', fin: 'end', mis: 'my', muy: 'very', más: 'more',
+  mucha: 'a lot of', tarde: 'late / afternoon', temprano: 'early', pescado: 'fish (food)', comiste: 'you ate',
+  película: 'movie', coche: 'car', nuevo: 'new', ellos: 'they', viajó: 'traveled', pasada: 'last', semana: 'week',
+  españa: 'Spain', tren: 'train', campo: 'countryside', fútbol: 'soccer', amigos: 'friends', abuela: 'grandmother',
+  hacía: 'made / used to make', domingos: 'Sundays', frío: 'cold', gustaba: 'pleased (used to)', caminaba: 'I was walking',
+  repente: 'sudden', salió: 'went out', corriendo: 'running', llaves: 'keys', autobús: 'bus', teléfono: 'phone',
+  estaba: 'I was / it was', leyendo: 'reading', sonó: 'rang', esta: 'this', este: 'this', ese: 'that', vas: 'you go',
+  va: 'goes', hacer: 'to do / to make', cocinar: 'to cook', nosotros: 'us / we', ciudad: 'city', japón: 'Japan',
+  largo: 'long', tiempo: 'time', lunes: 'Monday', después: 'after', clase: 'class', ayudarme: 'to help me',
+  bueno: 'good', descansar: 'to rest', poco: 'little', dinero: 'money', aprender: 'to learn', llueva: 'it rains (subj.)',
+  tengas: 'you have (subj.)', vengas: 'you come (subj.)', duermas: 'you sleep (subj.)', estudie: 'I study (subj.)',
+  quiere: 'wants', sale: 'leaves', nueve: 'nine', doce: 'twelve', necesito: 'I need', aquí: 'here', hora: 'hour',
+  retraso: 'delay', reserva: 'reservation', nombre: 'name', quiero: 'I want', funciona: 'works', salida: 'checkout / exit',
+  mesa: 'table', trae: 'bring', quisiera: 'I would like', sopa: 'soup', cebolla: 'onion', plato: 'dish', comida: 'food',
+  deliciosa: 'delicious', gire: 'turn', siga: 'continue', calles: 'streets / blocks', museo: 'museum',
+  farmacia: 'pharmacy', perdone: 'excuse me', estación: 'station', idea: 'idea', lo: 'it', siento: 'I feel',
+  contigo: 'with you', aburrida: 'boring', caro: 'expensive', vacaciones: 'vacation', mando: 'I send',
+  desde: 'from / since', viernes: 'Fridays', busco: 'I look for', hijo: 'son', pastilla: 'pill', veces: 'times',
+  examen: 'exam', fue: 'was', cuesta: 'costs', ojo: 'eye', cara: 'face', tomando: 'taking', pelo: 'hair',
+  nubes: 'clouds', pelos: 'hairs', lengua: 'tongue', razón: 'reason', acuerdo: 'agreement', opinión: 'opinion',
+  parece: 'seems', gustaría: 'would please', espero: 'I hope', importante: 'important', ir: 'to go', día: 'day',
+  tuviera: 'I had (subj.)', próximo: 'next', algún: 'some', duele: 'hurts', empezó: 'started', comido: 'eaten',
+  pan: 'bread', no: 'no / not', ojalá: 'hopefully', sin: 'without',
 };
 LESSONS.forEach(l => l.words.forEach(([es, en]) => {
   const key = es.replace(/[¿?¡!]/g, '').toLowerCase();
   if (!key.includes(' ')) GLOSS[key] = en;
-  else { const parts = key.split(' '); const last = parts[parts.length - 1]; if (!GLOSS[last]) GLOSS[last] = en.replace(/^the /, ''); }
+  else {
+    const parts = key.split(' ');
+    if (parts.length === 2 && ['el', 'la', 'los', 'las'].includes(parts[0]) && !GLOSS[parts[1]]) GLOSS[parts[1]] = en.replace(/^the /, '');
+  }
 }));
 
 /* ---------- Helpers ---------- */
@@ -525,7 +703,10 @@ const EN_SUBS = [
   [/\bi'm\b/g, 'i am'], [/\byou're\b/g, 'you are'], [/\bhe's\b/g, 'he is'], [/\bshe's\b/g, 'she is'],
   [/\bit's\b/g, 'it is'], [/\bwhat's\b/g, 'what is'], [/\bwe're\b/g, 'we are'], [/\bthey're\b/g, 'they are'],
   [/\bdon't\b/g, 'do not'], [/\bthanks\b/g, 'thank you'], [/\bhi\b/g, 'hello'], [/\bbye\b/g, 'goodbye'],
-  [/\bgood bye\b/g, 'goodbye'], [/\bmom\b/g, 'mother'], [/\bdad\b/g, 'father'], [/\bok\b/g, 'okay'],
+  [/\bgood bye\b/g, 'goodbye'], [/\bdidn't\b/g, 'did not'], [/\bdoesn't\b/g, 'does not'], [/\bisn't\b/g, 'is not'],
+  [/\baren't\b/g, 'are not'], [/\bwasn't\b/g, 'was not'], [/\bcan't\b/g, 'cannot'], [/\bcan not\b/g, 'cannot'],
+  [/\bwon't\b/g, 'will not'], [/\b(i|you|we|they|he|she|it)'ll\b/g, '$1 will'], [/\b(i|you|we|they|he|she|it)'d\b/g, '$1 would'],
+  [/\b(i|you|we|they)'ve\b/g, '$1 have'], [/\bthat's\b/g, 'that is'], [/\bthere's\b/g, 'there is'], [/\bmom\b/g, 'mother'], [/\bdad\b/g, 'father'], [/\bok\b/g, 'okay'],
 ];
 function norm(s, lang) {
   s = s.toLowerCase().replace(/[’`]/g, "'").trim();
@@ -711,7 +892,7 @@ function transferSheet(onDone) {
     <input id="tr-streak" type="number" inputmode="numeric" min="0" max="100000" value="${S.streak || ''}" placeholder="Streak in days"
       style="width:100%;font:inherit;font-size:1.6rem;font-weight:800;text-align:center;color:var(--orange);background:var(--surface-2);border:2px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px">
     <div class="setting"><span>I already practiced today</span><button class="toggle on" id="tr-today" aria-label="Already practiced today"></button></div>
-    <div class="setting" style="margin-bottom:18px"><span>Skip the beginner lessons<br><small style="color:var(--muted);font-weight:600">Unlocks all ${LESSONS.length} lessons</small></span><button class="toggle on" id="tr-skip" aria-label="Unlock all lessons"></button></div>
+    <div class="setting" style="margin-bottom:18px"><span>Skip the beginner lessons<br><small style="color:var(--muted);font-weight:600">Unlocks Units 1–3</small></span><button class="toggle on" id="tr-skip" aria-label="Unlock beginner units"></button></div>
     <button class="btn" id="tr-go">Save</button>`, { center: true });
   ['#tr-today', '#tr-skip'].forEach(id => { const t = o.querySelector(id); t.onclick = () => { t.classList.toggle('on'); sfx.tap(); }; });
   o.querySelector('#tr-go').onclick = () => {
@@ -721,7 +902,7 @@ function transferSheet(onDone) {
       if (!o.querySelector('#tr-today').classList.contains('on')) d.setDate(d.getDate() - 1);
       S.streak = n; S.lastDay = dayKey(d); S.longest = Math.max(S.longest, n);
     }
-    if (o.querySelector('#tr-skip').classList.contains('on')) LESSONS.forEach(l => { if (!S.done[l.id]) S.done[l.id] = 1; });
+    if (o.querySelector('#tr-skip').classList.contains('on')) LESSONS.forEach(l => { if (l.unit < 3 && !S.done[l.id]) S.done[l.id] = 1; });
     save(); closeSheet(); sfx.done();
     toast(n ? `🔥 ${n} day streak saved` : 'Saved');
     onDone();
@@ -797,7 +978,7 @@ function learnHTML() {
     <span style="font-size:2.2rem">${pct >= 100 ? '🏆' : '🎯'}</span></div></div>`;
   COURSE.forEach((u, ui) => {
     html += `<section class="unit" style="--c:${u.c};--cd:${u.cd}">
-      <div class="unit-banner"><small>Unit ${ui + 1}</small><h2>${esc(u.title)}</h2><p>${esc(u.desc)}</p></div><div class="path">`;
+      <div class="unit-banner"><small>Unit ${ui + 1} · ${u.level}</small><h2>${esc(u.title)}</h2><p>${esc(u.desc)}</p></div><div class="path">`;
     u.lessons.forEach((l, li) => {
       const state = S.done[l.id] ? 'done' : l.idx === cur ? 'current' : l.idx < cur ? 'done' : 'locked';
       html += `<div class="node-wrap" style="transform:translateX(${OFFSETS[li % 8]}px)">
