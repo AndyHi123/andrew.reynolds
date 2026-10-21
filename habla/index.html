@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Habla">
+  <meta name="theme-color" content="#4fbf26">
+  <meta name="description" content="Learn Spanish with bite-sized lessons, streaks and XP">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Habla</title>
+  <style>
+    :root {
+      --green: #4fbf26; --green-d: #3d9a1b;
+      --blue: #2aa7e8; --blue-d: #1a86bf;
+      --purple: #a465f0; --purple-d: #8248cc;
+      --orange: #ff9a2e; --orange-d: #e07a10;
+      --red: #ef4b4b; --red-d: #c43232;
+      --gold: #ffc414; --gold-d: #e0a400;
+      --bg: #ffffff; --surface-2: #f6f7f8;
+      --border: #e3e5e8; --border-d: #cfd3d8;
+      --text: #3a3f45; --muted: #8a9099;
+      --ok-bg: #dff5cf; --ok-text: #3a8f12;
+      --bad-bg: #ffe1e1; --bad-text: #d23b3b;
+      --locked: #e3e5e8; --locked-d: #c8ccd1;
+      --sel-bg: #ddf2fd; --sel-border: #84d0f7;
+      --nav-h: 64px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #131f24; --surface-2: #1c2b33;
+        --border: #2c3c45; --border-d: #22323a;
+        --text: #eef2f4; --muted: #8fa0a9;
+        --ok-bg: #1f3a1a; --ok-text: #7fdc4f;
+        --bad-bg: #3e1d1f; --bad-text: #ff7b7b;
+        --locked: #33444d; --locked-d: #26353d;
+        --sel-bg: #193a4d; --sel-border: #2aa7e8;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); height: 100%; }
+    body {
+      font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+      -webkit-text-size-adjust: 100%;
+      overscroll-behavior: none;
+      user-select: none; -webkit-user-select: none;
+    }
+    input { user-select: text; -webkit-user-select: text; }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    .hidden { display: none !important; }
+    .screen { position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--bg); }
+
+    /* Chunky buttons */
+    .btn {
+      display: block; width: 100%;
+      padding: 14px 16px; border-radius: 16px;
+      font-weight: 800; font-size: 1rem; letter-spacing: 0.06em; text-transform: uppercase;
+      background: var(--c, var(--green)); color: #fff;
+      box-shadow: 0 4px 0 var(--cd, var(--green-d));
+      transition: transform .05s, box-shadow .05s, filter .1s;
+    }
+    .btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 0 0 var(--cd, var(--green-d)); }
+    .btn:disabled { background: var(--locked); color: var(--muted); box-shadow: 0 4px 0 var(--locked-d); cursor: default; }
+    .btn.ghost { background: transparent; color: var(--blue); box-shadow: none; border: 2px solid var(--border); box-shadow: 0 4px 0 var(--border); }
+    .btn.red { --c: var(--red); --cd: var(--red-d); }
+    .btn.blue { --c: var(--blue); --cd: var(--blue-d); }
+    .btn.text { background: none; box-shadow: none; color: var(--blue); }
+    .btn + .btn { margin-top: 12px; }
+
+    /* Top bar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+      border-bottom: 2px solid var(--border);
+      background: var(--bg); z-index: 5;
+    }
+    .stat { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 1.05rem; padding: 4px 6px; border-radius: 10px; }
+    .stat .ico { font-size: 1.3rem; line-height: 1; }
+    .stat.streak { color: var(--orange); }
+    .stat.streak.off { color: var(--muted); }
+    .stat.streak.off .ico { filter: grayscale(1); opacity: .6; }
+    .stat.gems { color: var(--blue); }
+    .stat.hearts { color: var(--red); }
+    .flag { font-size: 1.6rem; line-height: 1; padding: 2px 4px; }
+
+    .tab-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .wrap { max-width: 520px; margin: 0 auto; padding: 16px 16px calc(var(--nav-h) + 40px + env(safe-area-inset-bottom)); }
+
+    .nav {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      display: flex; justify-content: space-around;
+      border-top: 2px solid var(--border); background: var(--bg);
+      padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    }
+    .nav button { flex: 1; max-width: 90px; padding: 6px 0; border-radius: 12px; border: 2px solid transparent; font-size: 1.6rem; line-height: 1; }
+    .nav button span { display: block; font-size: 0.65rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+    .nav button.on { background: var(--sel-bg); border-color: var(--sel-border); }
+    .nav button.on span { color: var(--blue); }
+
+    /* Daily goal card */
+    .card { border: 2px solid var(--border); border-radius: 16px; padding: 14px 16px; margin-bottom: 16px; }
+    .card h3 { font-size: 1.05rem; font-weight: 800; margin-bottom: 8px; }
+    .card p { color: var(--muted); font-size: 0.92rem; }
+    .goal-row { display: flex; align-items: center; gap: 12px; }
+    .bar { flex: 1; height: 16px; background: var(--locked); border-radius: 99px; overflow: hidden; }
+    .bar > i { display: block; height: 100%; background: var(--gold); border-radius: 99px; transition: width .4s; position: relative; }
+    .bar > i::after { content: ""; position: absolute; left: 8px; right: 8px; top: 3px; height: 4px; border-radius: 9px; background: rgba(255,255,255,.35); }
+    .goal-num { font-weight: 800; color: var(--muted); font-size: .9rem; white-space: nowrap; }
+
+    /* Learning path */
+    .unit { margin-bottom: 28px; position: relative; }
+    .unit-banner {
+      background: var(--c); color: #fff; border-radius: 16px; padding: 14px 16px;
+      box-shadow: 0 4px 0 var(--cd); margin-bottom: 64px;
+    }
+    .unit-banner small { font-weight: 800; letter-spacing: .06em; opacity: .85; font-size: .75rem; text-transform: uppercase; }
+    .unit-banner h2 { font-size: 1.3rem; font-weight: 800; margin: 2px 0; }
+    .unit-banner p { font-size: .9rem; opacity: .95; }
+    .path { display: flex; flex-direction: column; align-items: center; gap: 18px; position: relative; }
+    .node-wrap { position: relative; }
+    .node {
+      width: 72px; height: 66px; border-radius: 50%;
+      background: var(--c); box-shadow: 0 7px 0 var(--cd);
+      font-size: 1.9rem; display: grid; place-items: center; color: #fff;
+      transition: transform .05s, box-shadow .05s;
+    }
+    .node:active { transform: translateY(6px); box-shadow: 0 1px 0 var(--cd); }
+    .node.locked { --c: var(--locked); --cd: var(--locked-d); filter: grayscale(1); }
+    .node.locked > * { opacity: .45; }
+    .node.done::after { content: "✓"; position: absolute; right: -6px; top: -6px; width: 24px; height: 24px; border-radius: 50%; background: var(--gold); color: #fff; font-size: .85rem; font-weight: 900; display: grid; place-items: center; box-shadow: 0 2px 0 var(--gold-d); }
+    .node.current { outline: 6px solid var(--locked); outline-offset: 5px; }
+    .node.chest { --c: var(--gold); --cd: var(--gold-d); border-radius: 18px; }
+    .node.chest.opened { opacity: .55; }
+    .start-bubble {
+      position: absolute; left: 50%; bottom: calc(100% + 18px); transform: translateX(-50%);
+      background: var(--bg); color: var(--c); border: 2px solid var(--border);
+      font-weight: 800; letter-spacing: .06em; padding: 8px 12px; border-radius: 12px; white-space: nowrap;
+      animation: bob 1.2s ease-in-out infinite; pointer-events: none; font-size: .9rem;
+    }
+    .start-bubble::after { content: ""; position: absolute; left: 50%; top: 100%; transform: translateX(-50%); border: 8px solid transparent; border-top-color: var(--border); }
+    @keyframes bob { 50% { transform: translate(-50%, -6px); } }
+    .path-mascot { position: absolute; width: 96px; top: 70px; pointer-events: none; }
+
+    /* Bottom sheet / modal */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 50; display: flex; align-items: flex-end; justify-content: center; animation: fade .15s; }
+    .overlay.center { align-items: center; padding: 16px; }
+    .sheet { background: var(--bg); width: 100%; max-width: 520px; border-radius: 22px 22px 0 0; padding: 22px 18px calc(22px + env(safe-area-inset-bottom)); animation: up .2s ease-out; }
+    .overlay.center .sheet { border-radius: 22px; padding-bottom: 22px; }
+    .sheet h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; text-align: center; }
+    .sheet p { color: var(--muted); text-align: center; margin-bottom: 18px; line-height: 1.4; }
+    .sheet .big-ico { font-size: 3.5rem; text-align: center; margin-bottom: 8px; }
+    .sheet textarea { width: 100%; min-height: 90px; border: 2px solid var(--border); border-radius: 12px; background: var(--surface-2); color: var(--text); padding: 10px; font: inherit; font-size: .8rem; margin-bottom: 14px; user-select: text; -webkit-user-select: text; }
+    @keyframes up { from { transform: translateY(40px); opacity: 0; } }
+    @keyframes fade { from { opacity: 0; } }
+
+    /* Lesson */
+    .lesson-top { display: flex; align-items: center; gap: 14px; padding: calc(14px + env(safe-area-inset-top)) 16px 8px; max-width: 620px; width: 100%; margin: 0 auto; }
+    .x-btn { font-size: 1.6rem; color: var(--muted); padding: 2px 6px; line-height: 1; }
+    .lesson-top .bar { height: 16px; }
+    .lesson-top .bar > i { background: var(--green); }
+    .lesson-body { flex: 1; overflow-y: auto; padding: 12px 16px 24px; max-width: 620px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; }
+    .ex-label { font-size: .8rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--purple); margin-bottom: 6px; }
+    .ex-title { font-size: 1.45rem; font-weight: 800; margin-bottom: 18px; line-height: 1.25; }
+    .combo { color: var(--orange); font-weight: 800; font-size: .85rem; margin-bottom: 4px; }
+
+    .choices4 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .choice {
+      border: 2px solid var(--border); border-radius: 16px; box-shadow: 0 4px 0 var(--border);
+      padding: 14px 10px; text-align: center; font-weight: 700; font-size: 1.05rem; background: var(--bg);
+      transition: transform .05s;
+    }
+    .choice:active { transform: translateY(2px); }
+    .choice .emo { font-size: 3.4rem; display: block; margin-bottom: 8px; line-height: 1.1; }
+    .choice.sel { background: var(--sel-bg); border-color: var(--sel-border); box-shadow: 0 4px 0 var(--sel-border); color: var(--blue); }
+    .choice.good { background: var(--ok-bg); border-color: var(--green); box-shadow: 0 4px 0 var(--green); color: var(--ok-text); }
+    .choice.wrong { background: var(--bad-bg); border-color: var(--red); box-shadow: 0 4px 0 var(--red); color: var(--bad-text); animation: shake .3s; }
+    .choice.gone { opacity: .35; pointer-events: none; box-shadow: 0 4px 0 var(--border); }
+    .choice-list { display: flex; flex-direction: column; gap: 12px; }
+    .choice-list .choice { text-align: left; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+    .choice .kbd { display: inline-grid; place-items: center; min-width: 28px; height: 28px; border: 2px solid var(--border); border-radius: 8px; font-size: .85rem; color: var(--muted); }
+    @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+    .prompt-row { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 18px; }
+    .prompt-row svg { width: 92px; flex-shrink: 0; }
+    .bubble { position: relative; border: 2px solid var(--border); border-radius: 16px; padding: 12px 14px; font-size: 1.1rem; line-height: 1.5; margin-bottom: 30px; }
+    .bubble::before { content: ""; position: absolute; left: -12px; bottom: 14px; border: 6px solid transparent; border-right: 6px solid var(--border); border-bottom: 6px solid var(--border); }
+    .say { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--blue); box-shadow: 0 3px 0 var(--blue-d); color: #fff; font-size: 1rem; margin-right: 6px; vertical-align: middle; }
+    .w { border-bottom: 2px dashed var(--muted); cursor: pointer; position: relative; }
+    .tip { position: absolute; left: 50%; top: calc(100% + 8px); transform: translateX(-50%); background: var(--bg); border: 2px solid var(--border); border-radius: 10px; padding: 6px 10px; font-size: .9rem; font-weight: 700; white-space: nowrap; z-index: 3; box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+
+    .answer-line { min-height: 118px; border-top: 2px solid var(--border); border-bottom: 2px solid var(--border); padding: 10px 0; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; margin-bottom: 26px; background-image: linear-gradient(var(--border), var(--border)); background-size: 100% 2px; background-position: 0 58px; background-repeat: no-repeat; }
+    .bank { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+    .tok { border: 2px solid var(--border); border-radius: 12px; box-shadow: 0 3px 0 var(--border); padding: 8px 12px; font-size: 1.05rem; font-weight: 600; background: var(--bg); transition: transform .05s; }
+    .tok:active { transform: translateY(2px); }
+    .tok.used { background: var(--locked); color: transparent; box-shadow: none; border-color: var(--locked); pointer-events: none; }
+
+    .listen-btns { display: flex; justify-content: center; gap: 16px; margin: 8px 0 26px; }
+    .listen-big { width: 120px; height: 100px; border-radius: 20px; background: var(--blue); box-shadow: 0 5px 0 var(--blue-d); color: #fff; font-size: 3rem; }
+    .listen-slow { width: 72px; height: 72px; border-radius: 18px; background: var(--blue); box-shadow: 0 5px 0 var(--blue-d); color: #fff; font-size: 1.9rem; align-self: flex-end; }
+    .listen-big:active, .listen-slow:active { transform: translateY(5px); box-shadow: none; }
+
+    .type-box { width: 100%; min-height: 140px; border: 2px solid var(--border); border-radius: 16px; background: var(--surface-2); color: var(--text); font: inherit; font-size: 1.1rem; padding: 12px; resize: none; }
+    .type-box:focus { outline: none; border-color: var(--sel-border); }
+    .accents { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .accents button { border: 2px solid var(--border); border-radius: 8px; padding: 4px 10px; font-weight: 700; box-shadow: 0 2px 0 var(--border); }
+
+    .match { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .match .col { display: flex; flex-direction: column; gap: 12px; }
+    .match .choice { padding: 16px 8px; font-size: 1rem; }
+
+    .lesson-foot { border-top: 2px solid var(--border); padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); transition: background .15s; }
+    .lesson-foot .inner { max-width: 620px; margin: 0 auto; }
+    .lesson-foot.ok { background: var(--ok-bg); border-color: transparent; }
+    .lesson-foot.bad { background: var(--bad-bg); border-color: transparent; }
+    .fb { display: none; margin-bottom: 14px; }
+    .lesson-foot.ok .fb, .lesson-foot.bad .fb { display: flex; gap: 12px; align-items: flex-start; }
+    .fb .fb-ico { width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; background: var(--bg); display: grid; place-items: center; font-size: 1.4rem; font-weight: 900; }
+    .ok .fb-ico { color: var(--green); }
+    .bad .fb-ico { color: var(--red); }
+    .fb h4 { font-size: 1.25rem; font-weight: 800; }
+    .ok .fb h4, .ok .fb p { color: var(--ok-text); }
+    .bad .fb h4, .bad .fb p { color: var(--bad-text); }
+    .fb p { font-size: 1rem; margin-top: 2px; }
+    .lesson-foot.bad .btn { --c: var(--red); --cd: var(--red-d); }
+    .skip-row { display: flex; gap: 12px; }
+    .skip-row .btn.ghost { flex: 0 0 auto; width: auto; color: var(--muted); }
+    .skip-row .btn:not(.ghost) { flex: 1; }
+    .skip-row .btn + .btn { margin-top: 0; }
+
+    /* Result screens */
+    .center-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; text-align: center; max-width: 520px; margin: 0 auto; width: 100%; }
+    .center-col svg.mascot { width: 150px; margin-bottom: 18px; animation: pop .5s ease-out; }
+    .center-col h1 { font-size: 1.8rem; font-weight: 900; color: var(--gold); margin-bottom: 22px; }
+    .center-col h1.green { color: var(--green); }
+    .center-col h1.orange { color: var(--orange); }
+    .tiles { display: flex; gap: 10px; width: 100%; }
+    .tile { flex: 1; border: 2px solid var(--c); border-radius: 16px; overflow: hidden; background: var(--c); }
+    .tile small { display: block; color: #fff; font-weight: 800; font-size: .7rem; letter-spacing: .06em; padding: 4px 0; text-transform: uppercase; }
+    .tile b { display: block; background: var(--bg); border-radius: 13px; padding: 12px 4px; font-size: 1.25rem; color: var(--c); }
+    .foot-pad { padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); max-width: 520px; width: 100%; margin: 0 auto; }
+    .streak-num { font-size: 5.5rem; font-weight: 900; color: var(--orange); line-height: 1; }
+    .week { display: flex; gap: 8px; justify-content: center; margin: 22px 0 10px; }
+    .week div { text-align: center; font-weight: 800; color: var(--muted); font-size: .8rem; }
+    .week i { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--locked); margin-top: 6px; font-style: normal; color: #fff; }
+    .week i.on { background: var(--orange); }
+    @keyframes pop { 0% { transform: scale(.5); opacity: 0; } 70% { transform: scale(1.08); } }
+
+    /* Lists, profile, shop */
+    h2.sec { font-size: 1.4rem; font-weight: 800; margin: 4px 0 14px; }
+    .row { display: flex; align-items: center; gap: 14px; }
+    .row .grow { flex: 1; min-width: 0; }
+    .shop-item { border: 2px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+    .shop-item .ico { font-size: 2.4rem; }
+    .shop-item h4 { font-weight: 800; font-size: 1.05rem; }
+    .shop-item p { color: var(--muted); font-size: .88rem; margin-top: 2px; }
+    .price { border: 2px solid var(--border); border-radius: 12px; padding: 8px 12px; font-weight: 800; color: var(--blue); box-shadow: 0 3px 0 var(--border); white-space: nowrap; }
+    .price:disabled { color: var(--muted); opacity: .6; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .stats-grid > div { border: 2px solid var(--border); border-radius: 14px; padding: 12px; display: flex; gap: 10px; align-items: center; }
+    .stats-grid b { display: block; font-size: 1.15rem; font-weight: 800; }
+    .stats-grid small { color: var(--muted); font-size: .8rem; }
+    .stats-grid .ico { font-size: 1.5rem; }
+    .chart { display: flex; align-items: flex-end; gap: 8px; height: 130px; padding-top: 10px; }
+    .chart > div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+    .chart i { display: block; width: 100%; max-width: 30px; background: var(--gold); border-radius: 6px 6px 2px 2px; min-height: 3px; }
+    .chart i.zero { background: var(--locked); }
+    .chart small { font-size: .7rem; font-weight: 800; color: var(--muted); margin-top: 6px; }
+    .chart em { font-style: normal; font-size: .7rem; font-weight: 800; color: var(--muted); margin-bottom: 3px; }
+    .seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .seg button { border: 2px solid var(--border); border-radius: 12px; padding: 10px 4px; font-weight: 800; box-shadow: 0 3px 0 var(--border); }
+    .seg button.on { background: var(--sel-bg); border-color: var(--sel-border); color: var(--blue); box-shadow: 0 3px 0 var(--sel-border); }
+    .setting { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 2px solid var(--border); font-weight: 700; }
+    .setting:last-child { border-bottom: 0; }
+    .toggle { width: 52px; height: 30px; border-radius: 99px; background: var(--locked); position: relative; transition: background .15s; }
+    .toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: left .15s; }
+    .toggle.on { background: var(--green); }
+    .toggle.on::after { left: 25px; }
+    .word-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 2px solid var(--border); }
+    .word-row:last-child { border-bottom: 0; }
+    .word-row .emo { font-size: 1.6rem; width: 36px; text-align: center; }
+    .word-row b { display: block; font-weight: 800; }
+    .word-row small { color: var(--muted); }
+    .empty { color: var(--muted); text-align: center; padding: 20px 0; }
+
+    /* Welcome */
+    .welcome h1 { color: var(--green); font-size: 2.6rem; font-weight: 900; margin-bottom: 8px; }
+    .welcome p.lead { color: var(--muted); font-size: 1.1rem; margin-bottom: 28px; }
+    .goal-list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    .goal-list .choice { display: flex; justify-content: space-between; text-align: left; padding: 16px; }
+    .goal-list .choice span { color: var(--muted); font-weight: 600; }
+
+    .toast { position: fixed; left: 50%; top: calc(16px + env(safe-area-inset-top)); transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-weight: 700; z-index: 100; animation: fade .2s; max-width: 90vw; text-align: center; }
+  </style>
+</head>
+<body>
+
+<!-- Welcome / onboarding -->
+<div class="screen hidden" id="welcome"></div>
+
+<!-- Main app -->
+<div class="screen hidden" id="home">
+  <div class="topbar">
+    <span class="flag" title="Spanish">🇪🇸</span>
+    <button class="stat streak" id="st-streak"><span class="ico">🔥</span><span></span></button>
+    <button class="stat gems" id="st-gems"><span class="ico">💎</span><span></span></button>
+    <button class="stat hearts" id="st-hearts"><span class="ico">❤️</span><span></span></button>
+  </div>
+  <div class="tab-body" id="tab-body"></div>
+  <nav class="nav" id="nav">
+    <button data-tab="learn" class="on">🏠<span>Learn</span></button>
+    <button data-tab="practice">🏋️<span>Practice</span></button>
+    <button data-tab="shop">🛍️<span>Shop</span></button>
+    <button data-tab="profile">🦊<span>Profile</span></button>
+  </nav>
+</div>
+
+<!-- Lesson -->
+<div class="screen hidden" id="lesson">
+  <div class="lesson-top">
+    <button class="x-btn" id="quit" aria-label="Quit lesson">✕</button>
+    <div class="bar"><i id="lesson-prog" style="width:0%"></i></div>
+    <div class="stat hearts" id="lesson-hearts"><span class="ico">❤️</span><span></span></div>
+  </div>
+  <div class="lesson-body" id="ex"></div>
+  <div class="lesson-foot" id="foot">
+    <div class="inner">
+      <div class="fb">
+        <div class="fb-ico" id="fb-ico"></div>
+        <div><h4 id="fb-title"></h4><p id="fb-text"></p></div>
+      </div>
+      <div class="skip-row">
+        <button class="btn ghost" id="skip">Skip</button>
+        <button class="btn" id="check" disabled>Check</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Result / streak screens -->
+<div class="screen hidden" id="result"></div>
+
+<script>
+'use strict';
+
+/* ---------- Mascot (Pico the fox) ---------- */
+const FOX = `<svg class="mascot" viewBox="0 0 120 120" aria-hidden="true">
+  <path d="M20 14 L52 40 L26 64 Z" fill="#f2711f"/>
+  <path d="M100 14 L68 40 L94 64 Z" fill="#f2711f"/>
+  <path d="M27 26 L44 41 L31 54 Z" fill="#5a2d12"/>
+  <path d="M93 26 L76 41 L89 54 Z" fill="#5a2d12"/>
+  <ellipse cx="60" cy="66" rx="41" ry="37" fill="#ff8c3a"/>
+  <path d="M19 66 Q40 70 60 98 Q80 70 101 66 Q97 102 60 106 Q23 102 19 66Z" fill="#fff"/>
+  <circle cx="44" cy="62" r="7.5" fill="#2b1a10"/><circle cx="46.5" cy="59.5" r="2.6" fill="#fff"/>
+  <circle cx="76" cy="62" r="7.5" fill="#2b1a10"/><circle cx="78.5" cy="59.5" r="2.6" fill="#fff"/>
+  <ellipse cx="60" cy="82" rx="6.5" ry="4.8" fill="#2b1a10"/>
+  <path d="M53 90 Q60 96 67 90" stroke="#2b1a10" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <ellipse cx="32" cy="78" rx="6" ry="3.5" fill="#ffb3a0" opacity=".7"/>
+  <ellipse cx="88" cy="78" rx="6" ry="3.5" fill="#ffb3a0" opacity=".7"/>
+</svg>`;
+
+/* ---------- Course content ----------
+   words:     [spanish, english, emoji?]
+   sentences: [spanish, english, [extra accepted English], [extra accepted Spanish]] */
+const COURSE = [
+  { title: 'Hello and goodbye', desc: 'Greet people and talk about food', c: '#4fbf26', cd: '#3d9a1b', lessons: [
+    { title: 'Greetings', icon: '👋',
+      words: [['hola','hello','🙋'],['adiós','goodbye','👋'],['gracias','thank you','🙏'],['por favor','please','🥺'],['sí','yes','👍'],['no','no','👎'],['buenos días','good morning','🌅'],['¿cómo estás?','how are you?']],
+      sentences: [
+        ['Hola, buenos días.','Hello, good morning.'],
+        ['Sí, gracias.','Yes, thank you.'],
+        ['No, gracias.','No, thank you.'],
+        ['Gracias, adiós.','Thank you, goodbye.'],
+        ['Sí, por favor.','Yes, please.'],
+        ['Hola, ¿cómo estás?','Hello, how are you?'],
+      ] },
+    { title: 'People', icon: '🧑',
+      words: [['el hombre','the man','👨'],['la mujer','the woman','👩'],['el niño','the boy','👦'],['la niña','the girl','👧'],['yo','I'],['tú','you'],['soy','I am'],['eres','you are']],
+      sentences: [
+        ['Yo soy un hombre.','I am a man.',[],['Soy un hombre.']],
+        ['Tú eres una mujer.','You are a woman.',[],['Eres una mujer.']],
+        ['Soy una niña.','I am a girl.',[],['Yo soy una niña.']],
+        ['Tú eres un niño.','You are a boy.',[],['Eres un niño.']],
+        ['Hola, soy un niño.','Hello, I am a boy.',[],['Hola, yo soy un niño.']],
+        ['El hombre y la mujer.','The man and the woman.'],
+      ] },
+    { title: 'Food', icon: '🍎',
+      words: [['el agua','the water','💧'],['el pan','the bread','🍞'],['la manzana','the apple','🍎'],['la leche','the milk','🥛'],['el café','the coffee','☕'],['como','I eat'],['bebo','I drink'],['y','and']],
+      sentences: [
+        ['Yo como pan.','I eat bread.',['I am eating bread.'],['Como pan.']],
+        ['Bebo agua.','I drink water.',['I am drinking water.'],['Yo bebo agua.']],
+        ['Como una manzana.','I eat an apple.',['I am eating an apple.'],['Yo como una manzana.']],
+        ['Leche y café, por favor.','Milk and coffee, please.'],
+        ['El pan y el agua.','The bread and the water.'],
+        ['Tú bebes leche.','You drink milk.',['You are drinking milk.'],['Bebes leche.']],
+      ] },
+    { title: 'Animals', icon: '🐶',
+      words: [['el perro','the dog','🐶'],['el gato','the cat','🐱'],['el pájaro','the bird','🐦'],['el caballo','the horse','🐴'],['el pez','the fish','🐟'],['come','eats'],['bebe','drinks']],
+      sentences: [
+        ['El perro come.','The dog eats.',['The dog is eating.']],
+        ['El gato bebe leche.','The cat drinks milk.',['The cat is drinking milk.']],
+        ['El caballo come pan.','The horse eats bread.',['The horse is eating bread.']],
+        ['El pájaro bebe agua.','The bird drinks water.',['The bird is drinking water.']],
+        ['Un perro y un gato.','A dog and a cat.'],
+      ] },
+  ] },
+  { title: 'Describe your world', desc: 'Colors, family, numbers and feelings', c: '#2aa7e8', cd: '#1a86bf', lessons: [
+    { title: 'Colors', icon: '🎨',
+      words: [['rojo','red','🔴'],['azul','blue','🔵'],['verde','green','🟢'],['amarillo','yellow','🟡'],['negro','black','⚫'],['blanco','white','⚪'],['es','is']],
+      sentences: [
+        ['El gato es negro.','The cat is black.'],
+        ['La manzana es roja.','The apple is red.'],
+        ['El perro es blanco.','The dog is white.'],
+        ['El pájaro es azul.','The bird is blue.'],
+        ['La manzana es verde.','The apple is green.'],
+      ] },
+    { title: 'Family', icon: '👪',
+      words: [['la madre','the mother','👩‍👧'],['el padre','the father','👨‍👦'],['el hermano','the brother','🧒'],['la hermana','the sister','👱‍♀️'],['la familia','the family','👨‍👩‍👧'],['mi','my']],
+      sentences: [
+        ['Mi madre bebe café.','My mother drinks coffee.',['My mother is drinking coffee.']],
+        ['Mi padre come pan.','My father eats bread.',['My father is eating bread.']],
+        ['Ella es mi hermana.','She is my sister.'],
+        ['Él es mi hermano.','He is my brother.'],
+        ['Mi familia y mi perro.','My family and my dog.'],
+      ] },
+    { title: 'Numbers', icon: '🔢',
+      words: [['uno','one','1️⃣'],['dos','two','2️⃣'],['tres','three','3️⃣'],['cuatro','four','4️⃣'],['cinco','five','5️⃣'],['diez','ten','🔟'],['tengo','I have']],
+      sentences: [
+        ['Tengo dos gatos.','I have two cats.',[],['Yo tengo dos gatos.']],
+        ['Tres manzanas, por favor.','Three apples, please.'],
+        ['Tengo un perro.','I have a dog.',['I have one dog.'],['Yo tengo un perro.']],
+        ['Cinco y cinco son diez.','Five and five are ten.',['Five and five is ten.','Five plus five is ten.','Five plus five are ten.']],
+        ['Mi hermano tiene cuatro peces.','My brother has four fish.'],
+      ] },
+    { title: 'Feelings', icon: '😊',
+      words: [['feliz','happy','😊'],['triste','sad','😢'],['cansado','tired','😴'],['bien','fine','👌'],['estoy','I am'],['tengo hambre','I am hungry','🍽️']],
+      sentences: [
+        ['Estoy bien, gracias.','I am fine, thank you.',['I am well, thank you.','I am good, thank you.','I am okay, thank you.']],
+        ['Estoy feliz.','I am happy.',[],['Yo estoy feliz.']],
+        ['Mi madre está cansada.','My mother is tired.'],
+        ['¿Estás triste?','Are you sad?'],
+        ['Tengo hambre.','I am hungry.',[],['Yo tengo hambre.']],
+      ] },
+  ] },
+  { title: 'Out and about', desc: 'Places, time, actions and meeting people', c: '#a465f0', cd: '#8248cc', lessons: [
+    { title: 'Places', icon: '🏠',
+      words: [['la casa','the house','🏠'],['la escuela','the school','🏫'],['el parque','the park','🌳'],['la playa','the beach','🏖️'],['el restaurante','the restaurant','🍽️'],['voy','I go']],
+      sentences: [
+        ['Voy a la playa.','I go to the beach.',['I am going to the beach.'],['Yo voy a la playa.']],
+        ['Voy a la escuela.','I go to school.',['I go to the school.','I am going to school.','I am going to the school.'],['Yo voy a la escuela.']],
+        ['El perro está en el parque.','The dog is in the park.'],
+        ['Mi casa es blanca.','My house is white.',['My home is white.']],
+        ['Vamos al restaurante.','We go to the restaurant.',['We are going to the restaurant.',"Let's go to the restaurant."]],
+      ] },
+    { title: 'Time', icon: '⏰',
+      words: [['hoy','today','📅'],['mañana','tomorrow','🌄'],['la noche','the night','🌙'],['el día','the day','☀️'],['ahora','now','⏰']],
+      sentences: [
+        ['Hoy es un buen día.','Today is a good day.'],
+        ['Voy a la playa mañana.','I go to the beach tomorrow.',['I am going to the beach tomorrow.','I will go to the beach tomorrow.']],
+        ['Buenas noches.','Good night.',['Good evening.']],
+        ['Bebo café ahora.','I drink coffee now.',['I am drinking coffee now.']],
+        ['Mañana voy a la escuela.','Tomorrow I go to school.',['Tomorrow I am going to school.','Tomorrow I go to the school.','I go to school tomorrow.','I am going to school tomorrow.']],
+      ] },
+    { title: 'Actions', icon: '🏃',
+      words: [['hablar','to speak','🗣️'],['leer','to read','📖'],['correr','to run','🏃'],['dormir','to sleep','🛏️'],['hablo','I speak'],['el libro','the book','📕']],
+      sentences: [
+        ['Hablo español.','I speak Spanish.',[],['Yo hablo español.']],
+        ['Mi hermana lee un libro.','My sister reads a book.',['My sister is reading a book.']],
+        ['El perro corre en el parque.','The dog runs in the park.',['The dog is running in the park.']],
+        ['El gato duerme.','The cat sleeps.',['The cat is sleeping.']],
+        ['¿Hablas inglés?','Do you speak English?'],
+      ] },
+    { title: 'Meet people', icon: '🤝',
+      words: [['me llamo','my name is','📛'],['mucho gusto','nice to meet you','🤝'],['¿de dónde eres?','where are you from?','🌎'],['soy de','I am from']],
+      sentences: [
+        ['Me llamo Ana.','My name is Ana.',['I am Ana.','I am called Ana.']],
+        ['Mucho gusto, Ana.','Nice to meet you, Ana.',['Pleased to meet you, Ana.']],
+        ['¿Cómo te llamas?','What is your name?'],
+        ['Soy de México.','I am from Mexico.',[],['Yo soy de México.']],
+        ['¿De dónde eres?','Where are you from?'],
+      ] },
+  ] },
+];
+
+// Flat list of lessons with their unit index
+const LESSONS = [];
+COURSE.forEach((u, ui) => u.lessons.forEach((l, li) => {
+  l.id = `u${ui + 1}l${li + 1}`; l.unit = ui; l.idx = LESSONS.length;
+  LESSONS.push(l);
+}));
+
+// Word hints shown when tapping Spanish words in a sentence
+const GLOSS = {
+  el: 'the', la: 'the', los: 'the', las: 'the', un: 'a / one', una: 'a / one', y: 'and', es: 'is', son: 'are',
+  mi: 'my', de: 'from / of', en: 'in', a: 'to', al: 'to the', está: 'is', estás: 'are you / you are', estoy: 'I am',
+  tiene: 'has', tengo: 'I have', bebes: 'you drink', come: 'eats', bebe: 'drinks', ella: 'she', él: 'he',
+  roja: 'red', blanca: 'white', cansada: 'tired', buen: 'good', buenas: 'good', noches: 'nights / evening',
+  vamos: 'we go / let’s go', lee: 'reads', corre: 'runs', duerme: 'sleeps', hablas: 'you speak',
+  español: 'Spanish', inglés: 'English', te: 'yourself', llamas: 'you call', cómo: 'how', dónde: 'where',
+  gatos: 'cats', manzanas: 'apples', peces: 'fish (plural)', me: 'myself', llamo: 'I call', gusto: 'pleasure',
+  mucho: 'much', días: 'days', buenos: 'good',
+};
+LESSONS.forEach(l => l.words.forEach(([es, en]) => {
+  const key = es.replace(/[¿?¡!]/g, '').toLowerCase();
+  if (!key.includes(' ')) GLOSS[key] = en;
+  else { const parts = key.split(' '); const last = parts[parts.length - 1]; if (!GLOSS[last]) GLOSS[last] = en.replace(/^the /, ''); }
+}));
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const sample = (a, n) => shuffle(a).slice(0, n);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const keyToDate = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+const daysBetween = (a, b) => Math.round((keyToDate(b) - keyToDate(a)) / 86400000);
+const tokenize = s => s.replace(/[¿?¡!.,;:]/g, '').split(/\s+/).filter(Boolean);
+
+const EN_SUBS = [
+  [/\bi'm\b/g, 'i am'], [/\byou're\b/g, 'you are'], [/\bhe's\b/g, 'he is'], [/\bshe's\b/g, 'she is'],
+  [/\bit's\b/g, 'it is'], [/\bwhat's\b/g, 'what is'], [/\bwe're\b/g, 'we are'], [/\bthey're\b/g, 'they are'],
+  [/\bdon't\b/g, 'do not'], [/\bthanks\b/g, 'thank you'], [/\bhi\b/g, 'hello'], [/\bbye\b/g, 'goodbye'],
+  [/\bgood bye\b/g, 'goodbye'], [/\bmom\b/g, 'mother'], [/\bdad\b/g, 'father'], [/\bok\b/g, 'okay'],
+];
+function norm(s, lang) {
+  s = s.toLowerCase().replace(/[’`]/g, "'").trim();
+  if (lang === 'en') EN_SUBS.forEach(([re, rep]) => { s = s.replace(re, rep); });
+  return s.replace(/[¿?¡!.,;:"'«»\-–—]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+const deaccent = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+/* ---------- Saved progress ---------- */
+const KEY = 'habla-progress-v1';
+const MAX_HEARTS = 5;
+const HEART_MS = 30 * 60 * 1000;
+const REFILL_COST = 100;
+const FREEZE_COST = 200;
+const DEFAULTS = {
+  v: 1, started: false, goal: 20, xp: 0, gems: 500, hearts: MAX_HEARTS, heartsTs: Date.now(),
+  streak: 0, longest: 0, lastDay: null, freezes: 0, xpByDay: {}, done: {}, chests: {},
+  sound: true, lessons: 0, perfect: 0,
+};
+let S = load();
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) return Object.assign({}, DEFAULTS, JSON.parse(raw));
+  } catch (e) {}
+  return Object.assign({}, DEFAULTS, { xpByDay: {}, done: {}, chests: {} });
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Could not save progress on this device'); }
+}
+// Ask the browser not to clear our storage when the phone runs low on space
+try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+
+function syncHearts() {
+  const now = Date.now();
+  if (S.hearts >= MAX_HEARTS) { S.hearts = MAX_HEARTS; S.heartsTs = now; return; }
+  const gained = Math.floor((now - S.heartsTs) / HEART_MS);
+  if (gained > 0) {
+    S.hearts = Math.min(MAX_HEARTS, S.hearts + gained);
+    S.heartsTs = S.hearts >= MAX_HEARTS ? now : S.heartsTs + gained * HEART_MS;
+  }
+}
+// Called on open: a missed day either burns streak freezes or resets the streak
+function syncStreak() {
+  if (!S.lastDay) return;
+  const missed = daysBetween(S.lastDay, dayKey()) - 1;
+  if (missed <= 0) return;
+  if (S.freezes >= missed) {
+    S.freezes -= missed;
+    const y = new Date(); y.setDate(y.getDate() - 1);
+    S.lastDay = dayKey(y);
+    toast(`🧊 ${missed} streak freeze${missed > 1 ? 's' : ''} used`);
+  } else {
+    S.streak = 0;
+  }
+}
+const didToday = () => S.lastDay === dayKey();
+const todayXp = () => S.xpByDay[dayKey()] || 0;
+const currentLessonIdx = () => { const i = LESSONS.findIndex(l => !S.done[l.id]); return i < 0 ? LESSONS.length : i; };
+const unlocked = l => l.idx <= currentLessonIdx();
+
+/* ---------- Sound, speech, haptics ---------- */
+let actx;
+function tone(freqs, dur = 0.12, type = 'sine', gap = 0.09, vol = 0.16) {
+  if (!S.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const t0 = actx.currentTime;
+    freqs.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.value = f;
+      const st = t0 + i * gap;
+      g.gain.setValueAtTime(0.0001, st);
+      g.gain.exponentialRampToValueAtTime(vol, st + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, st + dur);
+      o.connect(g).connect(actx.destination);
+      o.start(st); o.stop(st + dur + 0.03);
+    });
+  } catch (e) {}
+}
+const sfx = {
+  ok: () => tone([660, 990], 0.14),
+  bad: () => tone([196, 147], 0.2, 'triangle', 0.14, 0.2),
+  done: () => tone([523, 659, 784, 1047], 0.18, 'triangle', 0.11),
+  tap: () => tone([520], 0.04, 'sine', 0, 0.05),
+};
+const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
+
+const hasTTS = 'speechSynthesis' in window;
+let esVoice = null;
+function loadVoices() {
+  if (!hasTTS) return;
+  const vs = speechSynthesis.getVoices();
+  esVoice = vs.find(v => /^es[-_](ES|MX|US)/i.test(v.lang)) || vs.find(v => /^es/i.test(v.lang)) || null;
+}
+if (hasTTS) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+function speak(text, slow) {
+  if (!hasTTS || !S.sound) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = esVoice ? esVoice.lang : 'es-ES';
+    if (esVoice) u.voice = esVoice;
+    u.rate = slow ? 0.55 : 0.9;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+
+/* ---------- UI helpers ---------- */
+function show(id) {
+  ['welcome', 'home', 'lesson', 'result'].forEach(s => $('#' + s).classList.toggle('hidden', s !== id));
+}
+let toastTimer;
+function toast(msg) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.remove(), 2200);
+}
+function sheet(html, { center = false, onClose } = {}) {
+  closeSheet();
+  const o = document.createElement('div');
+  o.className = 'overlay' + (center ? ' center' : '');
+  o.id = 'overlay';
+  o.innerHTML = `<div class="sheet">${html}</div>`;
+  o.addEventListener('click', e => { if (e.target === o) { closeSheet(); onClose && onClose(); } });
+  document.body.appendChild(o);
+  return o;
+}
+function closeSheet() { const o = $('#overlay'); if (o) o.remove(); }
+function confirmSheet({ icon, title, text, yes, no = 'Cancel', danger, onYes, onNo }) {
+  const o = sheet(`${icon ? `<div class="big-ico">${icon}</div>` : ''}<h2>${title}</h2><p>${text}</p>
+    <button class="btn ${danger ? 'red' : ''}" id="cf-yes">${yes}</button>
+    <button class="btn text" id="cf-no">${no}</button>`, { center: true });
+  o.querySelector('#cf-yes').onclick = () => { closeSheet(); onYes(); };
+  o.querySelector('#cf-no').onclick = () => { closeSheet(); onNo && onNo(); };
+}
+
+/* ---------- Welcome ---------- */
+function renderWelcome(step = 0) {
+  const el = $('#welcome');
+  if (step === 0) {
+    el.innerHTML = `<div class="center-col welcome">${FOX}<h1>habla</h1>
+      <p class="lead">Learn Spanish for free, a few minutes a day.</p></div>
+      <div class="foot-pad"><button class="btn" id="w-go">Get started</button>
+      <button class="btn text" id="w-import">I have a backup code</button></div>`;
+    el.querySelector('#w-go').onclick = () => renderWelcome(1);
+    el.querySelector('#w-import').onclick = importSheet;
+  } else {
+    const goals = [[10, 'Casual'], [20, 'Regular'], [30, 'Serious'], [50, 'Intense']];
+    el.innerHTML = `<div class="center-col welcome" style="justify-content:flex-start;padding-top:calc(40px + env(safe-area-inset-top))">
+      ${FOX.replace('class="mascot"', 'class="mascot" style="width:100px"')}
+      <h2 class="sec">Pick a daily goal</h2>
+      <div class="goal-list">${goals.map(([x, n]) => `<button class="choice ${S.goal === x ? 'sel' : ''}" data-g="${x}"><b>${n}</b><span>${x} XP / day</span></button>`).join('')}</div></div>
+      <div class="foot-pad"><button class="btn" id="w-done">Continue</button></div>`;
+    el.querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
+      S.goal = +b.dataset.g; sfx.tap();
+      el.querySelectorAll('[data-g]').forEach(x => x.classList.toggle('sel', x === b));
+    });
+    el.querySelector('#w-done').onclick = () => { S.started = true; save(); goHome('learn'); };
+  }
+  show('welcome');
+}
+
+/* ---------- Home ---------- */
+let tab = 'learn';
+let heartTimer;
+function goHome(t = tab) {
+  tab = t;
+  syncHearts(); save();
+  show('home');
+  renderTop();
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  const body = $('#tab-body');
+  body.innerHTML = `<div class="wrap">${{ learn: learnHTML, practice: practiceHTML, shop: shopHTML, profile: profileHTML }[tab]()}</div>`;
+  ({ learn: bindLearn, practice: bindPractice, shop: bindShop, profile: bindProfile })[tab]();
+  if (tab === 'learn') {
+    const cur = body.querySelector('.node.current');
+    if (cur) cur.scrollIntoView({ block: 'center' });
+  } else body.scrollTop = 0;
+}
+function renderTop() {
+  const st = $('#st-streak');
+  st.classList.toggle('off', !didToday());
+  st.lastElementChild.textContent = S.streak;
+  $('#st-gems').lastElementChild.textContent = S.gems;
+  $('#st-hearts').lastElementChild.textContent = S.hearts;
+}
+document.querySelectorAll('#nav button').forEach(b => b.onclick = () => { sfx.tap(); goHome(b.dataset.tab); });
+$('#st-hearts').onclick = heartsSheet;
+$('#st-gems').onclick = () => sheet(`<div class="big-ico">💎</div><h2>${S.gems} gems</h2><p>Earn gems by finishing lessons and opening unit chests. Spend them in the shop.</p><button class="btn blue" id="g-shop">Go to shop</button>`)
+  .querySelector('#g-shop').onclick = () => { closeSheet(); goHome('shop'); };
+$('#st-streak').onclick = () => sheet(`<div class="big-ico" style="${didToday() ? '' : 'filter:grayscale(1)'}">🔥</div><h2>${S.streak} day streak</h2>
+  <p>${didToday() ? 'You’ve extended your streak today. See you tomorrow!' : 'Do a lesson today to ' + (S.streak ? 'keep your streak going.' : 'start a new streak.')}<br>Longest streak: ${S.longest} · Streak freezes: ${S.freezes}</p>
+  <button class="btn" id="s-ok">Got it</button>`).querySelector('#s-ok').onclick = closeSheet;
+
+function heartsSheet() {
+  syncHearts(); renderTop();
+  clearInterval(heartTimer);
+  const nextText = () => {
+    if (S.hearts >= MAX_HEARTS) return 'You have full hearts.';
+    const ms = HEART_MS - (Date.now() - S.heartsTs);
+    const m = Math.max(0, Math.floor(ms / 60000)), s = Math.max(0, Math.floor(ms / 1000) % 60);
+    return `Next heart in ${m}:${String(s).padStart(2, '0')}`;
+  };
+  const o = sheet(`<div class="big-ico">${'❤️'.repeat(S.hearts) + '🤍'.repeat(MAX_HEARTS - S.hearts)}</div>
+    <h2>Hearts</h2><p>You lose a heart for each mistake in a lesson. <span id="h-next">${nextText()}</span></p>
+    <button class="btn blue" id="h-refill" ${S.hearts >= MAX_HEARTS || S.gems < REFILL_COST ? 'disabled' : ''}>Refill · 💎 ${REFILL_COST}</button>
+    <button class="btn ghost" id="h-practice">Practice to earn hearts</button>`, { onClose: () => clearInterval(heartTimer) });
+  heartTimer = setInterval(() => {
+    syncHearts();
+    const n = document.getElementById('h-next');
+    if (!n) return clearInterval(heartTimer);
+    n.textContent = nextText();
+  }, 1000);
+  o.querySelector('#h-refill').onclick = () => { refillHearts(); closeSheet(); goHome(); };
+  o.querySelector('#h-practice').onclick = () => { closeSheet(); startPractice(); };
+}
+function refillHearts() {
+  if (S.gems < REFILL_COST) return toast('Not enough gems');
+  S.gems -= REFILL_COST; S.hearts = MAX_HEARTS; S.heartsTs = Date.now(); save();
+  sfx.done(); toast('Hearts refilled ❤️');
+}
+
+const OFFSETS = [0, 46, 70, 46, 0, -46, -70, -46];
+function learnHTML() {
+  const cur = currentLessonIdx();
+  const pct = Math.min(100, todayXp() / S.goal * 100);
+  let html = `<div class="card"><div class="row"><div class="grow"><h3>Daily goal</h3>
+    <div class="goal-row"><div class="bar"><i style="width:${pct}%"></i></div><span class="goal-num">${todayXp()} / ${S.goal} XP</span></div></div>
+    <span style="font-size:2.2rem">${pct >= 100 ? '🏆' : '🎯'}</span></div></div>`;
+  COURSE.forEach((u, ui) => {
+    html += `<section class="unit" style="--c:${u.c};--cd:${u.cd}">
+      <div class="unit-banner"><small>Unit ${ui + 1}</small><h2>${esc(u.title)}</h2><p>${esc(u.desc)}</p></div><div class="path">`;
+    u.lessons.forEach((l, li) => {
+      const state = S.done[l.id] ? 'done' : l.idx === cur ? 'current' : l.idx < cur ? 'done' : 'locked';
+      html += `<div class="node-wrap" style="transform:translateX(${OFFSETS[li % 8]}px)">
+        ${state === 'current' ? `<div class="start-bubble">${l.idx === 0 && !S.lessons ? 'START' : 'NEXT'}</div>` : ''}
+        <button class="node ${state}" data-l="${l.idx}" aria-label="${esc(l.title)}"><span>${state === 'locked' ? '🔒' : l.icon}</span></button></div>`;
+    });
+    const chestReady = u.lessons.every(l => S.done[l.id]);
+    const opened = S.chests[ui];
+    html += `<div class="node-wrap" style="transform:translateX(${OFFSETS[u.lessons.length % 8]}px)">
+      <button class="node chest ${chestReady ? '' : 'locked'} ${opened ? 'opened' : ''}" data-chest="${ui}" aria-label="Unit chest"><span>${opened ? '📭' : '🎁'}</span></button></div>`;
+    html += `</div>${FOX.replace('class="mascot"', `class="path-mascot" style="${ui % 2 ? 'left:0' : 'right:0'}"`)}</section>`;
+  });
+  html += `<div class="card" style="text-align:center"><h3>🎉 More units coming soon</h3><p>Keep practicing to strengthen your Spanish!</p></div>`;
+  return html;
+}
+function bindLearn() {
+  document.querySelectorAll('[data-l]').forEach(b => b.onclick = () => { sfx.tap(); lessonSheet(LESSONS[+b.dataset.l]); });
+  document.querySelectorAll('[data-chest]').forEach(b => b.onclick = () => chestSheet(+b.dataset.chest));
+}
+function lessonSheet(l) {
+  const u = COURSE[l.unit];
+  const style = `style="--c:${u.c};--cd:${u.cd}"`;
+  if (!unlocked(l)) {
+    return sheet(`<div class="big-ico">🔒</div><h2>${esc(l.title)}</h2><p>Complete all the lessons above to unlock this one!</p><button class="btn" ${style} id="ls-ok">Okay</button>`)
+      .querySelector('#ls-ok').onclick = closeSheet;
+  }
+  const times = S.done[l.id] || 0;
+  const o = sheet(`<div class="big-ico">${l.icon}</div><h2>${esc(l.title)}</h2>
+    <p>Unit ${l.unit + 1} · Lesson ${u.lessons.indexOf(l) + 1} of ${u.lessons.length}${times ? ` · Completed ${times}×` : ''}<br>
+    ${l.words.slice(0, 5).map(w => esc(w[0])).join(' · ')}</p>
+    <button class="btn" ${style} id="ls-go">${times ? 'Practice again' : 'Start'} · +10 XP</button>`);
+  o.querySelector('#ls-go').onclick = () => { closeSheet(); startLesson(l); };
+}
+function chestSheet(ui) {
+  const u = COURSE[ui];
+  if (S.chests[ui]) return sheet(`<div class="big-ico">📭</div><h2>Chest opened</h2><p>You already collected this reward.</p><button class="btn" id="c-ok">Okay</button>`).querySelector('#c-ok').onclick = closeSheet;
+  if (!u.lessons.every(l => S.done[l.id])) return sheet(`<div class="big-ico">🎁</div><h2>Unit reward</h2><p>Finish every lesson in Unit ${ui + 1} to open this chest.</p><button class="btn" id="c-ok">Okay</button>`).querySelector('#c-ok').onclick = closeSheet;
+  S.chests[ui] = true; S.gems += 50; save(); sfx.done(); buzz(40);
+  sheet(`<div class="big-ico" style="animation:pop .5s">💎</div><h2>+50 gems!</h2><p>You finished Unit ${ui + 1}: ${esc(u.title)}.</p><button class="btn blue" id="c-ok">Collect</button>`, { center: true })
+    .querySelector('#c-ok').onclick = () => { closeSheet(); goHome(); };
+}
+
+/* Practice tab */
+function learnedWords() { return LESSONS.filter(l => S.done[l.id]).flatMap(l => l.words); }
+function practiceHTML() {
+  const words = learnedWords();
+  return `<h2 class="sec">Practice</h2>
+    <div class="card"><div class="row"><span style="font-size:2.4rem">🏋️</span><div class="grow"><h3>Review lesson</h3>
+    <p>Mix of everything you’ve learned. Mistakes don’t cost hearts, and you earn +1 ❤️.</p></div></div>
+    <button class="btn" style="margin-top:14px" id="p-go" ${words.length ? '' : 'disabled'}>Start practice · +10 XP</button></div>
+    <div class="card"><div class="row"><span style="font-size:2.4rem">🎧</span><div class="grow"><h3>Listening</h3>
+    <p>Train your ear with listening exercises.</p></div></div>
+    <button class="btn blue" style="margin-top:14px" id="p-listen" ${words.length && hasTTS ? '' : 'disabled'}>Start · +10 XP</button></div>
+    <h2 class="sec" style="margin-top:24px">Your words (${words.length})</h2>
+    <div class="card">${words.length ? words.map(([es, en, emo]) => `<div class="word-row"><span class="emo">${emo || '💬'}</span><div class="grow"><b>${esc(es)}</b><small>${esc(en)}</small></div>
+      ${hasTTS ? `<button class="say" data-say="${esc(es)}">🔊</button>` : ''}</div>`).join('') : '<p class="empty">Finish your first lesson to start collecting words.</p>'}</div>`;
+}
+function bindPractice() {
+  const go = $('#p-go'); if (go) go.onclick = () => startPractice();
+  const li = $('#p-listen'); if (li) li.onclick = () => startPractice('listen');
+  document.querySelectorAll('[data-say]').forEach(b => b.onclick = () => speak(b.dataset.say));
+}
+
+/* Shop tab */
+function shopHTML() {
+  return `<h2 class="sec">Shop</h2>
+    <p style="color:var(--muted);margin:-6px 0 16px">You have 💎 <b style="color:var(--blue)">${S.gems}</b> gems</p>
+    <div class="shop-item row"><span class="ico">❤️</span><div class="grow"><h4>Refill hearts</h4><p>Get full hearts so you can keep learning. (${S.hearts}/${MAX_HEARTS})</p></div>
+      <button class="price" id="sh-refill" ${S.hearts >= MAX_HEARTS || S.gems < REFILL_COST ? 'disabled' : ''}>💎 ${REFILL_COST}</button></div>
+    <div class="shop-item row"><span class="ico">🧊</span><div class="grow"><h4>Streak freeze</h4><p>Keeps your streak if you miss a day. Equipped: ${S.freezes}/2</p></div>
+      <button class="price" id="sh-freeze" ${S.freezes >= 2 || S.gems < FREEZE_COST ? 'disabled' : ''}>💎 ${FREEZE_COST}</button></div>
+    <div class="card" style="margin-top:20px"><h3>💡 How to earn gems</h3><p>+5 gems for each lesson, +5 more for a perfect lesson, and +50 for each unit chest.</p></div>`;
+}
+function bindShop() {
+  $('#sh-refill').onclick = () => { refillHearts(); goHome('shop'); };
+  $('#sh-freeze').onclick = () => {
+    if (S.gems < FREEZE_COST || S.freezes >= 2) return;
+    S.gems -= FREEZE_COST; S.freezes++; save(); sfx.done(); toast('Streak freeze equipped 🧊'); goHome('shop');
+  };
+}
+
+/* Profile tab */
+function profileHTML() {
+  const days = [];
+  for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d); }
+  const vals = days.map(d => S.xpByDay[dayKey(d)] || 0);
+  const max = Math.max(S.goal, ...vals);
+  const done = LESSONS.filter(l => S.done[l.id]).length;
+  return `<div style="text-align:center;margin-bottom:16px">${FOX.replace('class="mascot"', 'class="mascot" style="width:90px"')}
+      <h2 class="sec" style="margin:6px 0 0">Spanish learner</h2><p style="color:var(--muted)">🇪🇸 ${done} of ${LESSONS.length} lessons complete</p></div>
+    <h2 class="sec">Statistics</h2>
+    <div class="stats-grid">
+      <div><span class="ico">🔥</span><div><b>${S.streak}</b><small>Day streak</small></div></div>
+      <div><span class="ico">⚡</span><div><b>${S.xp}</b><small>Total XP</small></div></div>
+      <div><span class="ico">📚</span><div><b>${S.lessons}</b><small>Lessons</small></div></div>
+      <div><span class="ico">🏅</span><div><b>${S.longest}</b><small>Best streak</small></div></div>
+    </div>
+    <div class="card"><h3>XP this week</h3><div class="chart">${vals.map((v, i) => `<div><em>${v || ''}</em><i class="${v ? '' : 'zero'}" style="height:${Math.max(3, v / max * 90)}px"></i><small>${'SMTWTFS'[days[i].getDay()]}</small></div>`).join('')}</div></div>
+    <div class="card"><h3>Daily goal</h3><div class="seg">${[10, 20, 30, 50].map(g => `<button data-goal="${g}" class="${S.goal === g ? 'on' : ''}">${g} XP</button>`).join('')}</div></div>
+    <div class="card">
+      <div class="setting"><span>Sound effects & voice</span><button class="toggle ${S.sound ? 'on' : ''}" id="pf-sound" aria-label="Toggle sound"></button></div>
+      <div class="setting"><span>Back up progress</span><button class="price" id="pf-export">Copy code</button></div>
+      <div class="setting"><span>Restore from backup</span><button class="price" id="pf-import">Paste code</button></div>
+      <div class="setting"><span style="color:var(--red)">Reset all progress</span><button class="price" style="color:var(--red)" id="pf-reset">Reset</button></div>
+    </div>
+    <p style="color:var(--muted);font-size:.8rem;text-align:center">Progress saves automatically on this device. Use “Copy code” to move it to another phone or browser.</p>`;
+}
+function bindProfile() {
+  document.querySelectorAll('[data-goal]').forEach(b => b.onclick = () => { S.goal = +b.dataset.goal; save(); sfx.tap(); goHome('profile'); });
+  $('#pf-sound').onclick = () => { S.sound = !S.sound; save(); if (S.sound) sfx.ok(); goHome('profile'); };
+  $('#pf-export').onclick = exportSheet;
+  $('#pf-import').onclick = importSheet;
+  $('#pf-reset').onclick = () => confirmSheet({ icon: '⚠️', title: 'Reset progress?', text: 'This erases your XP, streak, gems and all completed lessons. This can’t be undone.', yes: 'Reset everything', danger: true,
+    onYes: () => { S = Object.assign({}, DEFAULTS, { xpByDay: {}, done: {}, chests: {}, heartsTs: Date.now() }); save(); renderWelcome(); } });
+}
+function exportSheet() {
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  const o = sheet(`<h2>Backup code</h2><p>Save this code somewhere safe. Paste it into “Restore from backup” to get your progress back.</p>
+    <textarea readonly id="bk">${code}</textarea><button class="btn blue" id="bk-copy">Copy</button>`);
+  o.querySelector('#bk-copy').onclick = async () => {
+    const ta = o.querySelector('#bk');
+    try { await navigator.clipboard.writeText(code); toast('Copied!'); }
+    catch (e) { ta.select(); try { document.execCommand('copy'); toast('Copied!'); } catch (e2) { toast('Select the code and copy it'); } }
+  };
+}
+function importSheet() {
+  const o = sheet(`<h2>Restore progress</h2><p>Paste your backup code below. This replaces the progress on this device.</p>
+    <textarea id="im" placeholder="Paste code here"></textarea><button class="btn" id="im-go">Restore</button>`);
+  o.querySelector('#im-go').onclick = () => {
+    try {
+      const data = JSON.parse(decodeURIComponent(escape(atob(o.querySelector('#im').value.trim()))));
+      if (typeof data !== 'object' || !data || typeof data.xp !== 'number') throw new Error('bad');
+      S = Object.assign({}, DEFAULTS, data, { started: true });
+      save(); closeSheet(); toast('Progress restored ✅'); syncStreak(); goHome('learn');
+    } catch (e) { toast('That code doesn’t look right'); }
+  };
+}
+
+/* ---------- Exercise generators ---------- */
+function poolUpTo(idx) { return LESSONS.slice(0, idx + 1); }
+function distractTokens(answerTokens, lang, pool, n) {
+  const have = new Set(answerTokens.map(t => norm(t, lang)));
+  const cands = new Map();
+  pool.forEach(l => l.sentences.forEach(s => tokenize(lang === 'es' ? s[0] : s[1]).forEach(t => {
+    const k = norm(t, lang);
+    if (!have.has(k) && !cands.has(k)) cands.set(k, t);
+  })));
+  return sample([...cands.values()], n);
+}
+const mkPick = (w, pool) => {
+  const others = sample(pool.flatMap(l => l.words).filter(x => x[2] && x[0] !== w[0] && x[1] !== w[1]), 3);
+  return { type: 'pick', word: w, choices: shuffle([w, ...others]) };
+};
+const mkMC = (w, pool) => {
+  const others = sample(pool.flatMap(l => l.words).filter(x => x[1] !== w[1] && x[0] !== w[0]), 2);
+  return { type: 'mc', word: w, choices: shuffle([w, ...others]) };
+};
+const mkMatch = words => ({ type: 'match', words: sample(words, Math.min(5, words.length)) });
+function mkSentence(s, kind, pool) {
+  const [es, en, enAlt = [], esAlt = []] = s;
+  if (kind === 'type') return { type: 'type', src: es, accepted: [en, ...enAlt], lang: 'en', sentence: s };
+  if (kind === 'listen') {
+    const ans = tokenize(es);
+    return { type: 'listen', audio: es, accepted: [es, ...esAlt], bank: shuffle([...ans, ...distractTokens(ans, 'es', pool, 3)]), lang: 'es', sentence: s };
+  }
+  const toEs = kind === 'en2es';
+  const ans = tokenize(toEs ? es : en);
+  const lang = toEs ? 'es' : 'en';
+  return { type: 'build', src: toEs ? en : es, srcLang: toEs ? 'en' : 'es', accepted: toEs ? [es, ...esAlt] : [en, ...enAlt],
+    bank: shuffle([...ans, ...distractTokens(ans, lang, pool, Math.min(4, Math.max(2, 8 - ans.length)))]), lang, sentence: s };
+}
+function buildLesson(l) {
+  const pool = poolUpTo(l.idx);
+  const emoji = l.words.filter(w => w[2]);
+  const plain = l.words.filter(w => !w[2]);
+  const intro = sample(emoji, 3).map(w => mkPick(w, pool));
+  const kinds = shuffle(['en2es', 'es2en', 'en2es', 'es2en', 'type', hasTTS ? 'listen' : 'en2es']);
+  const sents = shuffle(l.sentences).map((s, i) => mkSentence(s, kinds[i % kinds.length], pool));
+  const extra = sample(plain.length ? plain : l.words, 2).map(w => mkMC(w, pool));
+  const middle = shuffle([...sents.slice(2), ...extra]);
+  middle.splice(2, 0, mkMatch(l.words));
+  return [...intro, ...sents.slice(0, 2), ...middle];
+}
+function buildPractice(mode) {
+  const done = LESSONS.filter(l => S.done[l.id]);
+  const pool = poolUpTo(Math.max(...done.map(l => l.idx)));
+  const sents = done.flatMap(l => l.sentences);
+  const words = done.flatMap(l => l.words);
+  if (mode === 'listen') return sample(sents, 8).map(s => mkSentence(s, pick(['listen', 'listen', 'listen', 'type']), pool));
+  const out = sample(sents, 7).map(s => mkSentence(s, pick(['en2es', 'es2en', 'type', hasTTS ? 'listen' : 'es2en']), pool));
+  out.push(mkMatch(words));
+  sample(words.filter(w => w[2]), 2).forEach(w => out.splice(Math.floor(Math.random() * out.length), 0, mkPick(w, pool)));
+  return out;
+}
+
+/* ---------- Lesson engine ---------- */
+let L = null;
+function startLesson(l) {
+  syncHearts();
+  if (S.hearts <= 0) return outOfHearts(false);
+  L = { lesson: l, practice: false, queue: buildLesson(l), retry: new Set() };
+  beginRun();
+}
+function startPractice(mode) {
+  if (!LESSONS.some(l => S.done[l.id])) return toast('Finish a lesson first!');
+  L = { lesson: null, practice: true, queue: buildPractice(mode), retry: new Set() };
+  beginRun();
+}
+function beginRun() {
+  Object.assign(L, { total: L.queue.length, correct: 0, mistakes: 0, combo: 0, bestCombo: 0, start: Date.now(), pos: 0 });
+  show('lesson');
+  renderExercise();
+}
+function updateLessonTop() {
+  $('#lesson-prog').style.width = (L.correct / L.total * 100) + '%';
+  const h = $('#lesson-hearts');
+  h.classList.toggle('hidden', L.practice);
+  h.lastElementChild.textContent = S.hearts;
+}
+const foot = $('#foot'), checkBtn = $('#check'), skipBtn = $('#skip');
+function setReady(on) { checkBtn.disabled = !on; }
+
+function renderExercise() {
+  updateLessonTop();
+  const ex = L.queue[L.pos];
+  L.cur = ex; L.state = 'answer';
+  foot.className = 'lesson-foot';
+  checkBtn.textContent = 'Check';
+  setReady(false);
+  skipBtn.classList.toggle('hidden', ex.type === 'match');
+  skipBtn.textContent = ex.type === 'listen' ? 'Can’t listen' : 'Skip';
+  const el = $('#ex');
+  const comboHTML = L.combo >= 3 ? `<div class="combo">🔥 ${L.combo} in a row</div>` : '';
+  const retryHTML = L.retry.has(ex) ? `<div class="ex-label" style="color:var(--orange)">↻ Previous mistake</div>` : '';
+  el.innerHTML = comboHTML + retryHTML + RENDER[ex.type](ex);
+  BIND[ex.type](ex, el);
+  el.scrollTop = 0;
+}
+
+function sentenceHTML(text, lang) {
+  if (lang !== 'es') return esc(text);
+  return text.split(/(\s+)/).map(part => {
+    if (/^\s+$/.test(part)) return part;
+    const key = part.replace(/[¿?¡!.,;:]/g, '').toLowerCase();
+    return GLOSS[key] ? `<span class="w" data-g="${esc(GLOSS[key])}" data-w="${esc(key)}">${esc(part)}</span>` : esc(part);
+  }).join('');
+}
+function bindGloss(root) {
+  root.querySelectorAll('.w').forEach(w => w.onclick = e => {
+    e.stopPropagation();
+    root.querySelectorAll('.tip').forEach(t => t.remove());
+    const t = document.createElement('span');
+    t.className = 'tip'; t.textContent = w.dataset.g;
+    w.appendChild(t);
+    speak(w.dataset.w);
+    setTimeout(() => t.remove(), 1800);
+  });
+}
+
+function bankHTML(ex) {
+  return `<div class="answer-line" id="line"></div>
+    <div class="bank" id="bank">${ex.bank.map((t, i) => `<button class="tok" data-i="${i}">${esc(t)}</button>`).join('')}</div>`;
+}
+function bindBank(ex, el) {
+  const line = el.querySelector('#line');
+  ex.picked = [];
+  const refresh = () => setReady(ex.picked.length > 0);
+  el.querySelectorAll('#bank .tok').forEach(b => b.onclick = () => {
+    if (L.state !== 'answer') return;
+    const i = +b.dataset.i;
+    b.classList.add('used'); sfx.tap();
+    if (ex.lang === 'es') speak(ex.bank[i]);
+    ex.picked.push(i);
+    const chip = document.createElement('button');
+    chip.className = 'tok'; chip.textContent = ex.bank[i];
+    chip.onclick = () => {
+      if (L.state !== 'answer') return;
+      ex.picked.splice(ex.picked.indexOf(i), 1);
+      chip.remove(); b.classList.remove('used'); refresh();
+    };
+    line.appendChild(chip);
+    refresh();
+  });
+  ex.answer = () => ex.picked.map(i => ex.bank[i]).join(' ');
+}
+
+const RENDER = {
+  pick: ex => `<div class="ex-label">New word</div><h1 class="ex-title">Which one of these is “${esc(ex.word[1])}”?</h1>
+    <div class="choices4">${ex.choices.map((c, i) => `<button class="choice" data-i="${i}"><span class="emo">${c[2]}</span>${esc(c[0])}</button>`).join('')}</div>`,
+  mc: ex => `<h1 class="ex-title">What does “<span style="color:var(--purple)">${esc(ex.word[0])}</span>” mean?</h1>
+    <div class="choice-list">${ex.choices.map((c, i) => `<button class="choice" data-i="${i}"><span class="kbd">${i + 1}</span>${esc(c[1])}</button>`).join('')}</div>`,
+  match: ex => {
+    ex.left = shuffle(ex.words); ex.right = shuffle(ex.words);
+    return `<h1 class="ex-title">Tap the matching pairs</h1><div class="match">
+      <div class="col">${ex.left.map((w, i) => `<button class="choice" data-side="l" data-i="${i}">${esc(w[0])}</button>`).join('')}</div>
+      <div class="col">${ex.right.map((w, i) => `<button class="choice" data-side="r" data-i="${i}">${esc(w[1])}</button>`).join('')}</div></div>`;
+  },
+  build: ex => `<h1 class="ex-title">Write this in ${ex.lang === 'es' ? 'Spanish' : 'English'}</h1>
+    <div class="prompt-row">${FOX}<div class="bubble">${ex.srcLang === 'es' && hasTTS ? `<button class="say" id="say">🔊</button>` : ''}${sentenceHTML(ex.src, ex.srcLang)}</div></div>${bankHTML(ex)}`,
+  listen: ex => `<h1 class="ex-title">Tap what you hear</h1>
+    <div class="listen-btns"><button class="listen-big" id="say">🔊</button><button class="listen-slow" id="slow">🐢</button></div>${bankHTML(ex)}`,
+  type: ex => `<h1 class="ex-title">Write this in English</h1>
+    <div class="prompt-row">${FOX}<div class="bubble">${hasTTS ? `<button class="say" id="say">🔊</button>` : ''}${sentenceHTML(ex.src, 'es')}</div></div>
+    <textarea class="type-box" id="typed" placeholder="Type in English" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false"></textarea>`,
+};
+
+const BIND = {
+  pick: (ex, el) => {
+    el.querySelectorAll('.choice').forEach(b => b.onclick = () => {
+      if (L.state !== 'answer') return;
+      el.querySelectorAll('.choice').forEach(x => x.classList.toggle('sel', x === b));
+      ex.sel = +b.dataset.i; speak(ex.choices[ex.sel][0]); sfx.tap(); setReady(true);
+    });
+    ex.check = () => ({ ok: ex.choices[ex.sel] === ex.word, answer: ex.word[0] });
+  },
+  mc: (ex, el) => {
+    speak(ex.word[0]);
+    el.querySelectorAll('.choice').forEach(b => b.onclick = () => {
+      if (L.state !== 'answer') return;
+      el.querySelectorAll('.choice').forEach(x => x.classList.toggle('sel', x === b));
+      ex.sel = +b.dataset.i; sfx.tap(); setReady(true);
+    });
+    ex.check = () => ({ ok: ex.choices[ex.sel] === ex.word, answer: ex.word[1] });
+  },
+  match: (ex, el) => {
+    let selL = null, selR = null, matched = 0, slipped = false;
+    const tryPair = () => {
+      if (!selL || !selR) return;
+      const a = ex.left[+selL.dataset.i], b = ex.right[+selR.dataset.i];
+      const l = selL, r = selR; selL = selR = null;
+      if (a === b) {
+        [l, r].forEach(x => { x.classList.remove('sel'); x.classList.add('good'); });
+        sfx.ok(); matched++;
+        setTimeout(() => { [l, r].forEach(x => { x.classList.remove('good'); x.classList.add('gone'); }); }, 350);
+        if (matched === ex.words.length) setTimeout(() => finishCheck({ ok: true, answer: slipped ? 'Watch out for tricky pairs!' : '' }), 450);
+      } else {
+        slipped = true;
+        [l, r].forEach(x => { x.classList.remove('sel'); x.classList.add('wrong'); });
+        sfx.bad(); buzz(60);
+        setTimeout(() => [l, r].forEach(x => x.classList.remove('wrong')), 500);
+      }
+    };
+    el.querySelectorAll('.choice').forEach(b => b.onclick = () => {
+      if (b.classList.contains('gone') || b.classList.contains('good')) return;
+      if (b.dataset.side === 'l') { if (selL) selL.classList.remove('sel'); selL = b; speak(ex.left[+b.dataset.i][0]); }
+      else { if (selR) selR.classList.remove('sel'); selR = b; }
+      b.classList.add('sel'); sfx.tap();
+      tryPair();
+    });
+  },
+  build: (ex, el) => {
+    const say = el.querySelector('#say');
+    if (say) { say.onclick = () => speak(ex.src); setTimeout(() => speak(ex.src), 250); }
+    bindGloss(el); bindBank(ex, el);
+    ex.check = () => checkText(ex.answer(), ex.accepted, ex.lang);
+  },
+  listen: (ex, el) => {
+    el.querySelector('#say').onclick = () => speak(ex.audio);
+    el.querySelector('#slow').onclick = () => speak(ex.audio, true);
+    setTimeout(() => speak(ex.audio), 250);
+    bindBank(ex, el);
+    ex.check = () => checkText(ex.answer(), ex.accepted, 'es');
+  },
+  type: (ex, el) => {
+    const say = el.querySelector('#say');
+    if (say) { say.onclick = () => speak(ex.src); setTimeout(() => speak(ex.src), 250); }
+    bindGloss(el);
+    const ta = el.querySelector('#typed');
+    ta.oninput = () => setReady(ta.value.trim().length > 0);
+    ta.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); if (!checkBtn.disabled) checkBtn.click(); } };
+    ex.check = () => checkText(ta.value, ex.accepted, 'en');
+  },
+};
+
+function checkText(given, accepted, lang) {
+  const g = norm(given, lang);
+  if (accepted.some(a => norm(a, lang) === g)) return { ok: true, answer: accepted[0] };
+  if (accepted.some(a => deaccent(norm(a, lang)) === deaccent(g))) return { ok: true, answer: accepted[0], note: `Watch the accents: ${accepted[0]}` };
+  return { ok: false, answer: accepted[0] };
+}
+
+const PRAISE = ['Nice!', 'Great job!', 'Excellent!', 'Amazing!', 'Correct!', 'Awesome!', '¡Muy bien!'];
+function finishCheck(res) {
+  L.state = 'feedback';
+  const ex = L.cur;
+  L.lastOk = res.ok;
+  skipBtn.classList.add('hidden');
+  if (res.ok) {
+    L.correct++; L.combo++; L.bestCombo = Math.max(L.bestCombo, L.combo);
+    foot.className = 'lesson-foot ok';
+    $('#fb-ico').textContent = '✓';
+    $('#fb-title').textContent = L.combo >= 5 && L.combo % 5 === 0 ? `${L.combo} in a row! 🔥` : pick(PRAISE);
+    $('#fb-text').textContent = res.note || (ex.type === 'match' ? res.answer : '') || (ex.type === 'build' && ex.lang === 'en' && norm(ex.answer(), 'en') !== norm(res.answer, 'en') ? `Also correct: ${res.answer}` : '');
+    sfx.ok(); buzz(20);
+  } else {
+    L.mistakes++; L.combo = 0;
+    foot.className = 'lesson-foot bad';
+    $('#fb-ico').textContent = '✕';
+    $('#fb-title').textContent = 'Correct solution:';
+    $('#fb-text').textContent = res.answer;
+    sfx.bad(); buzz([60, 40, 60]);
+    if (!L.practice) {
+      if (S.hearts >= MAX_HEARTS) S.heartsTs = Date.now(); // regen timer starts with the first lost heart
+      S.hearts = Math.max(0, S.hearts - 1); save();
+    }
+    // Re-ask this one at the end of the lesson
+    L.queue.push(ex); L.retry.add(ex);
+  }
+  // Show the right answer on choice cards
+  if (ex.type === 'pick' || ex.type === 'mc') {
+    $('#ex').querySelectorAll('.choice').forEach((b, i) => {
+      if (ex.choices[i] === ex.word) b.classList.add('good');
+      else if (i === ex.sel) b.classList.add('wrong');
+      b.classList.remove('sel');
+    });
+  }
+  if (ex.type === 'type') $('#typed').readOnly = true;
+  if (!res.ok && (ex.type === 'build' || ex.type === 'listen' || ex.type === 'type') && ex.lang === 'es') speak(res.answer);
+  else if (res.ok && ex.type === 'listen') speak(ex.audio);
+  checkBtn.textContent = 'Continue';
+  setReady(true);
+  updateLessonTop();
+}
+
+checkBtn.onclick = () => {
+  if (!L) return;
+  if (L.state === 'answer') finishCheck(L.cur.check());
+  else nextExercise();
+};
+skipBtn.onclick = () => {
+  if (!L || L.state !== 'answer') return;
+  if (L.cur.type === 'listen') {
+    // Turn the rest of this lesson's listening into reading exercises
+    L.queue = L.queue.map((e, i) => i > L.pos && e.type === 'listen' ? mkSentence(e.sentence, 'en2es', LESSONS) : e);
+    L.correct++; L.combo = 0; L.state = 'feedback';
+    toast('Listening exercises off for this lesson');
+    return nextExercise();
+  }
+  finishCheck({ ok: false, answer: L.cur.check ? L.cur.check().answer || '' : '' });
+};
+document.addEventListener('keydown', e => {
+  if (!L || $('#lesson').classList.contains('hidden') || $('#overlay')) return;
+  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && !checkBtn.disabled) { e.preventDefault(); checkBtn.click(); }
+  const n = parseInt(e.key, 10);
+  if (L.state === 'answer' && n >= 1 && (L.cur.type === 'mc' || L.cur.type === 'pick')) {
+    const b = $('#ex').querySelectorAll('.choice')[n - 1]; if (b) b.click();
+  }
+});
+
+function nextExercise() {
+  if (!L.practice && S.hearts <= 0 && !L.lastOk) return outOfHearts(true);
+  L.pos++;
+  if (L.pos >= L.queue.length) return completeRun();
+  renderExercise();
+}
+
+$('#quit').onclick = () => confirmSheet({ icon: '😢', title: 'Wait, don’t go!', text: 'You’ll lose your progress in this lesson if you quit now.', yes: 'Keep learning', no: 'End session',
+  onYes: () => {}, onNo: () => { L = null; if (hasTTS) speechSynthesis.cancel(); goHome(); } });
+
+function outOfHearts(inLesson) {
+  const canBuy = S.gems >= REFILL_COST;
+  const o = sheet(`<div class="big-ico">💔</div><h2>You ran out of hearts!</h2>
+    <p>Refill your hearts to keep going, or practice to earn one back. A heart also refills every 30 minutes.</p>
+    <button class="btn blue" id="oh-buy" ${canBuy ? '' : 'disabled'}>Refill · 💎 ${REFILL_COST}</button>
+    <button class="btn ghost" id="oh-practice">Practice to earn hearts</button>
+    <button class="btn text" id="oh-quit">${inLesson ? 'End lesson' : 'Not now'}</button>`, { center: true });
+  o.querySelector('#oh-buy').onclick = () => {
+    refillHearts(); closeSheet();
+    if (inLesson) { L.pos++; L.pos >= L.queue.length ? completeRun() : renderExercise(); }
+    else renderTop();
+  };
+  o.querySelector('#oh-practice').onclick = () => { closeSheet(); L = null; startPractice(); };
+  o.querySelector('#oh-quit').onclick = () => { closeSheet(); L = null; goHome(); };
+}
+
+function completeRun() {
+  const secs = Math.round((Date.now() - L.start) / 1000);
+  const answered = L.correct + L.mistakes;
+  const acc = answered ? Math.round(L.correct / answered * 100) : 100;
+  const perfect = L.mistakes === 0;
+  const xp = 10 + (perfect ? 5 : 0);
+  const gems = 5 + (perfect ? 5 : 0);
+  const today = dayKey();
+  const wasToday = didToday();
+  const before = todayXp();
+
+  S.xp += xp; S.gems += gems; S.lessons++;
+  if (perfect) S.perfect++;
+  S.xpByDay[today] = before + xp;
+  if (L.lesson) S.done[L.lesson.id] = (S.done[L.lesson.id] || 0) + 1;
+  if (L.practice) S.hearts = Math.min(MAX_HEARTS, S.hearts + 1);
+  if (!wasToday) {
+    S.streak = S.lastDay && daysBetween(S.lastDay, today) === 1 ? S.streak + 1 : 1;
+    S.lastDay = today;
+    S.longest = Math.max(S.longest, S.streak);
+  }
+  // Keep the per-day history from growing forever
+  Object.keys(S.xpByDay).forEach(k => { if (daysBetween(k, today) > 60) delete S.xpByDay[k]; });
+  save();
+
+  const goalHit = before < S.goal && S.xpByDay[today] >= S.goal;
+  sfx.done(); buzz([30, 50, 30]);
+  const m = Math.floor(secs / 60), s = secs % 60;
+  const el = $('#result');
+  el.innerHTML = `<div class="center-col">${FOX}
+    <h1>${perfect ? 'Perfect lesson!' : L.practice ? 'Practice complete!' : 'Lesson complete!'}</h1>
+    <div class="tiles">
+      <div class="tile" style="--c:var(--gold)"><small>Total XP</small><b>⚡ ${xp}</b></div>
+      <div class="tile" style="--c:var(--green)"><small>${perfect ? 'Amazing' : 'Accuracy'}</small><b>🎯 ${acc}%</b></div>
+      <div class="tile" style="--c:var(--blue)"><small>Time</small><b>⏱ ${m}:${String(s).padStart(2, '0')}</b></div>
+    </div>
+    <p style="color:var(--muted);margin-top:18px;font-weight:700">+${gems} 💎${L.practice ? ' · +1 ❤️' : ''}${goalHit ? ' · Daily goal reached! 🏆' : ''}</p>
+    </div><div class="foot-pad"><button class="btn" id="r-go">Continue</button></div>`;
+  show('result');
+  L = null;
+  el.querySelector('#r-go').onclick = () => (!wasToday ? streakScreen() : goHome('learn'));
+}
+
+function streakScreen() {
+  const el = $('#result');
+  const days = [];
+  for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d); }
+  el.innerHTML = `<div class="center-col"><div style="font-size:5rem;animation:pop .5s">🔥</div>
+    <div class="streak-num">${S.streak}</div><h1 class="orange" style="margin:4px 0 0">day streak!</h1>
+    <div class="week">${days.map((d, i) => `<div>${'SMTWTFS'[d.getDay()]}<i class="${i >= 7 - Math.min(7, S.streak) ? 'on' : ''}">${i >= 7 - Math.min(7, S.streak) ? '✓' : ''}</i></div>`).join('')}</div>
+    <p style="color:var(--muted)">${S.streak === 1 ? 'You started a streak! Come back tomorrow to keep it going.' : 'Practice each day so your streak doesn’t reset!'}</p>
+    </div><div class="foot-pad"><button class="btn" style="--c:var(--orange);--cd:var(--orange-d)" id="s-go">Continue</button></div>`;
+  sfx.ok();
+  el.querySelector('#s-go').onclick = () => goHome('learn');
+}
+
+/* ---------- Boot ---------- */
+syncHearts(); syncStreak(); save();
+if (S.started) goHome('learn'); else renderWelcome();
+// Refresh hearts/streak when the app comes back to the foreground
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') { syncHearts(); syncStreak(); save(); if (!$('#home').classList.contains('hidden')) renderTop(); }
+});
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
