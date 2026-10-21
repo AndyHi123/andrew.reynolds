@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Andrew Reynolds</title>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --card: #ffffff;
+      --border: #d9dce1;
+      --text: #1f2933;
+      --muted: #5f6b7a;
+      --accent: #2563eb;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --border: #334155;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --accent: #60a5fa;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 48px 16px;
+    }
+    main { max-width: 480px; margin: 0 auto; }
+    h1 { font-size: 1.75rem; letter-spacing: -0.02em; }
+    .sub { color: var(--muted); margin: 6px 0 28px; }
+    a.link {
+      display: block;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 12px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    a.link:hover, a.link:focus-visible { border-color: var(--accent); outline: none; }
+    a.link strong { display: block; font-size: 1.05rem; color: var(--accent); }
+    a.link span { display: block; color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Andrew Reynolds</h1>
+    <p class="sub">Web development, audio production and software.</p>
+
+    <a class="link" href="workout-tracker/">
+      <strong>Workout Tracker</strong>
+      <span>Upper/Lower split tracker. Add it to your phone's Home Screen.</span>
+    </a>
+
+    <a class="link" href="andrew's%20resume/">
+      <strong>Resume</strong>
+      <span>Experience, skills and music.</span>
+    </a>
+  </main>
+</body>
+</html>
