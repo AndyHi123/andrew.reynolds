@@ -400,6 +400,27 @@
     .chart-readout { font-size: 0.85rem; min-height: 1.3em; margin-bottom: 4px; }
     .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
 
+    .dialog-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.75);
+      z-index: 90;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .dialog-backdrop.show { display: flex; }
+    .dialog {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px;
+      width: 100%;
+      max-width: 360px;
+    }
+    .dialog p { font-size: 0.95rem; line-height: 1.45; margin-bottom: 16px; }
+
     .toast {
       position: fixed;
       top: calc(16px + env(safe-area-inset-top));
@@ -526,6 +547,17 @@
   <!-- Exercise detail sheet -->
   <div id="sheet" class="sheet-backdrop">
     <div class="sheet" id="sheet-body"></div>
+  </div>
+
+  <!-- Confirm dialog (in-page, works everywhere) -->
+  <div id="dialog" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="dialog-msg">
+    <div class="dialog">
+      <p id="dialog-msg"></p>
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="dialog-cancel">Cancel</button>
+        <button class="btn btn-primary" id="dialog-ok">OK</button>
+      </div>
+    </div>
   </div>
 
   <nav class="bottom-nav">
@@ -961,9 +993,9 @@
     });
 
     $('finish-btn').addEventListener('click', finishWorkout);
-    $('discard-btn').addEventListener('click', () => {
+    $('discard-btn').addEventListener('click', async () => {
       if (!getDraft(state.dayType, false)) { showToast('Nothing to discard'); return; }
-      if (!confirm('Discard everything entered for this workout?')) return;
+      if (!(await askConfirm('Discard everything entered for this workout?', 'Discard', true))) return;
       delete state.drafts[state.dayType];
       saveState();
       stopRest();
@@ -971,7 +1003,7 @@
       showToast('Workout discarded');
     });
 
-    function finishWorkout() {
+    async function finishWorkout() {
       const type = state.dayType;
       const draft = getDraft(type, false);
       const ex = {};
@@ -987,7 +1019,7 @@
       }
 
       if (!Object.values(ex).some(e => e.sets.length)) {
-        if (!confirm(`No sets logged. Skip this ${type} workout and move on to ${NEXT_DAY[type]}?`)) return;
+        if (!(await askConfirm(`No sets logged. Skip this ${type} workout and move on to ${NEXT_DAY[type]}?`, 'Skip'))) return;
         delete state.drafts[type];
       } else {
         // PRs: best estimated 1RM beats every previous session
@@ -1135,10 +1167,10 @@
       }).join('');
     }
 
-    $('history-list').addEventListener('click', e => {
+    $('history-list').addEventListener('click', async e => {
       const del = e.target.closest('[data-delete]');
       if (del) {
-        if (confirm('Delete this workout from your history?')) {
+        if (await askConfirm('Delete this workout from your history?', 'Delete', true)) {
           state.sessions = state.sessions.filter(s => s.id !== del.dataset.delete);
           saveState();
           renderHistory();
@@ -1307,7 +1339,7 @@
       const file = e.target.files[0];
       e.target.value = '';
       if (!file) return;
-      file.text().then(text => {
+      file.text().then(async text => {
         const data = JSON.parse(text);
         let next;
         if (data && data.version === 2) {
@@ -1318,7 +1350,7 @@
         } else {
           throw new Error('bad file');
         }
-        if (!confirm(`Replace your current data with this backup (${next.sessions.length} workouts)?`)) return;
+        if (!(await askConfirm(`Replace your current data with this backup (${next.sessions.length} workouts)?`, 'Replace', true))) return;
         state = next;
         saveState();
         renderSettings();
@@ -1327,8 +1359,8 @@
       }).catch(() => showToast('That file is not a UL Tracker backup', true));
     });
 
-    $('clear-btn').addEventListener('click', () => {
-      if (!confirm('Delete ALL workouts and history? Export a backup first if you might want it. This cannot be undone.')) return;
+    $('clear-btn').addEventListener('click', async () => {
+      if (!(await askConfirm('Delete ALL workouts and history? Export a backup first if you might want it. This cannot be undone.', 'Delete all', true))) return;
       const settings = state.settings;
       state = defaultState();
       state.settings = settings;
@@ -1353,6 +1385,25 @@
       const b = e.target.closest('.nav-item');
       if (b) showView(b.dataset.view);
     });
+
+    let dialogResolve = null;
+    function askConfirm(message, okLabel, danger) {
+      if (dialogResolve) dialogResolve(false);
+      $('dialog-msg').textContent = message;
+      const ok = $('dialog-ok');
+      ok.textContent = okLabel || 'OK';
+      ok.className = 'btn ' + (danger ? 'btn-danger' : 'btn-primary');
+      $('dialog').classList.add('show');
+      ok.focus();
+      return new Promise(resolve => { dialogResolve = resolve; });
+    }
+    function closeDialog(result) {
+      $('dialog').classList.remove('show');
+      if (dialogResolve) { dialogResolve(result); dialogResolve = null; }
+    }
+    $('dialog-ok').addEventListener('click', () => closeDialog(true));
+    $('dialog-cancel').addEventListener('click', () => closeDialog(false));
+    $('dialog').addEventListener('click', e => { if (e.target.id === 'dialog') closeDialog(false); });
 
     let toastTimer = null;
     function showToast(msg, isError) {
