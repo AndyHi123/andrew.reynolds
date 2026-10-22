@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Charla">
+  <meta name="theme-color" content="#0b0a14">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Speak Spanish out loud from day one with a friendly AI tutor">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Charla</title>
+  <style>
+    :root {
+      --bg: #0b0a14; --surface: #16151f; --surface-2: #201f2c; --surface-3: #2a2938;
+      --border: #2c2b3b; --text: #f4f3fa; --muted: #9a98ad; --dim: #6c6a80;
+      --accent: #7c5cff; --accent-2: #00b8ff;
+      --grad: linear-gradient(135deg, #7c5cff 0%, #00b8ff 100%);
+      --good: #2fd98b; --ok: #ffc145; --bad: #ff5d6c; --fire: #ff8a3d;
+      --nav-h: 66px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+      -webkit-text-size-adjust: 100%;
+      overscroll-behavior: none;
+      user-select: none; -webkit-user-select: none;
+    }
+    input, textarea { user-select: text; -webkit-user-select: text; font: inherit; }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    .hidden { display: none !important; }
+    .screen { position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--bg); }
+    .scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .wrap { max-width: 560px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 16px calc(var(--nav-h) + 32px + env(safe-area-inset-bottom)); }
+
+    /* Buttons */
+    .btn {
+      display: block; width: 100%; padding: 16px; border-radius: 999px;
+      font-weight: 700; font-size: 1.05rem; text-align: center;
+      background: var(--grad); color: #fff;
+      transition: transform .08s, opacity .15s;
+    }
+    .btn:active:not(:disabled) { transform: scale(.98); }
+    .btn:disabled { background: var(--surface-3); color: var(--dim); cursor: default; }
+    .btn.white { background: #fff; color: #17151f; }
+    .btn.quiet { background: var(--surface-2); color: var(--text); }
+    .btn.link { background: none; color: var(--muted); font-weight: 600; font-size: .95rem; padding: 12px; }
+    .btn + .btn { margin-top: 10px; }
+
+    /* Tutor avatar */
+    .avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; display: block; }
+    .avatar.lg { width: 96px; height: 96px; }
+    .avatar.xl { width: 128px; height: 128px; }
+
+    /* Home header */
+    .hello { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .hello h1 { font-size: 1.6rem; letter-spacing: -0.02em; }
+    .hello p { color: var(--muted); font-size: .92rem; margin-top: 2px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); padding: 7px 12px; border-radius: 999px; font-weight: 700; font-size: .95rem; }
+    .pill.fire { color: var(--fire); }
+    .pill.off { color: var(--dim); }
+    .pill.off .ico { filter: grayscale(1); opacity: .5; }
+
+    /* Daily goal ring */
+    .goal { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 14px 16px; margin-bottom: 16px; }
+    .ring { width: 54px; height: 54px; flex-shrink: 0; }
+    .ring circle { fill: none; stroke-width: 6; }
+    .ring .track { stroke: var(--surface-3); }
+    .ring .val { stroke: url(#ringGrad); stroke-linecap: round; transition: stroke-dashoffset .5s; transform: rotate(-90deg); transform-origin: 50% 50%; }
+    .goal h3 { font-size: 1rem; }
+    .goal p { color: var(--muted); font-size: .87rem; margin-top: 2px; }
+
+    /* Continue hero */
+    .hero { position: relative; overflow: hidden; border-radius: 26px; padding: 20px; background: var(--grad); margin-bottom: 26px; }
+    .hero::after { content: ""; position: absolute; right: -40px; top: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.12); }
+    .hero small { font-weight: 700; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+    .hero h2 { font-size: 1.5rem; margin: 4px 0 4px; letter-spacing: -0.01em; position: relative; z-index: 1; }
+    .hero p { opacity: .92; font-size: .95rem; margin-bottom: 16px; position: relative; z-index: 1; }
+    .hero .row { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+    .hero .btn { width: auto; padding: 12px 22px; flex-shrink: 0; }
+    .hero .emoji { font-size: 2.6rem; position: absolute; right: 18px; top: 16px; z-index: 1; }
+
+    /* Course list */
+    .unit { margin-bottom: 26px; }
+    .unit-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+    .unit-head small { color: var(--accent-2); font-weight: 700; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; }
+    .unit-head h3 { font-size: 1.2rem; letter-spacing: -0.01em; }
+    .unit-head span { color: var(--muted); font-size: .85rem; font-weight: 600; }
+    .lesson-row { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 12px 14px; margin-bottom: 8px; transition: transform .08s; }
+    .lesson-row:active:not(.locked) { transform: scale(.985); }
+    .lesson-row .ic { width: 46px; height: 46px; border-radius: 14px; background: var(--surface-2); display: grid; place-items: center; font-size: 1.5rem; flex-shrink: 0; }
+    .lesson-row .t { flex: 1; min-width: 0; }
+    .lesson-row .t b { display: block; font-size: 1rem; }
+    .lesson-row .t span { display: block; color: var(--muted); font-size: .85rem; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lesson-row .st { font-size: .85rem; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+    .lesson-row.done .st { color: var(--good); }
+    .lesson-row.current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+    .lesson-row.locked { opacity: .45; cursor: default; }
+
+    /* Bottom nav */
+    .nav { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-around; background: rgba(11,10,20,.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--border); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); z-index: 5; }
+    .nav button { flex: 1; max-width: 110px; padding: 4px 0; color: var(--dim); }
+    .nav svg { width: 24px; height: 24px; display: block; margin: 0 auto 3px; }
+    .nav span { font-size: .7rem; font-weight: 700; }
+    .nav button.on { color: var(--text); }
+
+    .section-title { font-size: 1.45rem; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .section-sub { color: var(--muted); font-size: .93rem; margin-bottom: 18px; line-height: 1.4; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 16px; margin-bottom: 14px; }
+    .card h3 { font-size: 1.05rem; margin-bottom: 4px; }
+    .card p { color: var(--muted); font-size: .9rem; line-height: 1.4; }
+    .tag { display: inline-block; font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; background: rgba(124,92,255,.18); color: #b9a8ff; margin-bottom: 8px; }
+
+    /* Tutor card (Talk tab) */
+    .tutor-card { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+    .tutor-card .btn { margin-top: 14px; }
+    .topics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
+    .topic { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 14px; text-align: left; transition: transform .08s; }
+    .topic:active { transform: scale(.97); }
+    .topic .e { font-size: 1.7rem; display: block; margin-bottom: 8px; }
+    .topic b { font-size: .95rem; display: block; }
+    .topic span { color: var(--muted); font-size: .8rem; }
+
+    /* Practice tab */
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 14px 10px; text-align: center; }
+    .stat b { display: block; font-size: 1.4rem; letter-spacing: -0.02em; }
+    .stat span { color: var(--muted); font-size: .75rem; font-weight: 600; }
+    .phrase-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .phrase-item:last-child { border-bottom: 0; }
+    .phrase-item .t { flex: 1; min-width: 0; }
+    .phrase-item .t b { display: block; font-weight: 600; }
+    .phrase-item .t span { color: var(--muted); font-size: .85rem; }
+    .score-chip { font-size: .8rem; font-weight: 800; padding: 4px 8px; border-radius: 99px; flex-shrink: 0; }
+    .score-chip.g { background: rgba(47,217,139,.15); color: var(--good); }
+    .score-chip.o { background: rgba(255,193,69,.15); color: var(--ok); }
+    .score-chip.b { background: rgba(255,93,108,.15); color: var(--bad); }
+    .icon-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; flex-shrink: 0; }
+    .icon-btn svg { width: 20px; height: 20px; }
+
+    /* Profile */
+    .profile-top { text-align: center; margin-bottom: 20px; }
+    .profile-top .me { width: 84px; height: 84px; border-radius: 50%; background: var(--grad); display: grid; place-items: center; font-size: 2.2rem; font-weight: 800; margin: 0 auto 10px; }
+    .profile-top h2 { font-size: 1.4rem; }
+    .profile-top p { color: var(--muted); font-size: .9rem; }
+    .week { display: flex; justify-content: space-between; gap: 6px; margin-top: 12px; }
+    .week div { flex: 1; text-align: center; font-size: .72rem; color: var(--muted); font-weight: 700; }
+    .week i { display: block; height: 34px; border-radius: 10px; background: var(--surface-3); margin-bottom: 5px; position: relative; overflow: hidden; }
+    .week i > em { position: absolute; left: 0; right: 0; bottom: 0; background: var(--grad); }
+    .week .today { color: var(--text); }
+    .setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+    .setting:last-child { border-bottom: 0; }
+    .setting label { font-weight: 600; }
+    .setting small { display: block; color: var(--muted); font-size: .8rem; font-weight: 400; margin-top: 2px; }
+    .seg { display: inline-flex; background: var(--surface-2); border-radius: 999px; padding: 3px; flex-shrink: 0; }
+    .seg button { padding: 6px 12px; border-radius: 999px; font-size: .85rem; font-weight: 700; color: var(--muted); }
+    .seg button.on { background: var(--surface-3); color: var(--text); }
+    .switch { position: relative; width: 50px; height: 30px; border-radius: 99px; background: var(--surface-3); flex-shrink: 0; transition: background .2s; }
+    .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform .2s; }
+    .switch.on { background: var(--accent); }
+    .switch.on::after { transform: translateX(20px); }
+    .text-in { width: 100%; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; color: var(--text); font-size: 1rem; outline: none; }
+    .text-in:focus { border-color: var(--accent); }
+
+    /* Onboarding */
+    .ob { flex: 1; display: flex; flex-direction: column; max-width: 520px; width: 100%; margin: 0 auto; padding: calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom)); }
+    .ob-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .ob h1 { font-size: 2rem; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 10px; }
+    .ob h1 em { font-style: normal; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .ob p.lead { color: var(--muted); font-size: 1.05rem; line-height: 1.45; margin-bottom: 22px; }
+    .ob .welcome-art { display: flex; justify-content: center; margin-bottom: 26px; position: relative; }
+    .ob .welcome-art .bub { position: absolute; background: var(--surface-2); border: 1px solid var(--border); border-radius: 16px; padding: 8px 12px; font-weight: 700; font-size: .95rem; animation: floaty 3s ease-in-out infinite; }
+    @keyframes floaty { 50% { transform: translateY(-6px); } }
+    .opt { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; padding: 15px 16px; margin-bottom: 10px; transition: border-color .15s, background .15s; }
+    .opt .e { font-size: 1.6rem; }
+    .opt b { display: block; }
+    .opt span { color: var(--muted); font-size: .87rem; }
+    .opt.on { border-color: var(--accent); background: rgba(124,92,255,.12); }
+    .dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 18px; }
+    .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--surface-3); }
+    .dots i.on { background: var(--text); width: 20px; border-radius: 9px; }
+
+    /* Lesson player */
+    .lp-top { display: flex; align-items: center; gap: 14px; padding: calc(12px + env(safe-area-inset-top)) 16px 10px; max-width: 640px; width: 100%; margin: 0 auto; }
+    .x-btn { width: 36px; height: 36px; display: grid; place-items: center; color: var(--muted); border-radius: 50%; flex-shrink: 0; }
+    .x-btn svg { width: 22px; height: 22px; }
+    .pbar { flex: 1; height: 8px; border-radius: 99px; background: var(--surface-3); overflow: hidden; }
+    .pbar > i { display: block; height: 100%; background: var(--grad); border-radius: 99px; transition: width .35s; }
+    .lp-body { flex: 1; overflow-y: auto; padding: 10px 20px 20px; max-width: 640px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; }
+    .lp-kicker { color: var(--accent-2); font-weight: 700; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px; }
+    .tutor-line { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 22px; }
+    .tutor-line .bubble { background: var(--surface); border: 1px solid var(--border); border-radius: 4px 20px 20px 20px; padding: 12px 15px; font-size: 1rem; line-height: 1.45; }
+    .phrase-card { background: var(--surface); border: 1px solid var(--border); border-radius: 26px; padding: 26px 20px 20px; text-align: center; margin-bottom: 16px; }
+    .phrase-card .es { font-size: 1.85rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.25; margin-bottom: 10px; }
+    .phrase-card .en { color: var(--muted); font-size: 1.05rem; }
+    .phrase-card .en.big { color: var(--text); font-size: 1.6rem; font-weight: 700; line-height: 1.3; }
+    .phrase-card .tools { display: flex; justify-content: center; gap: 10px; margin-top: 18px; }
+    .chip-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--surface-2); border-radius: 999px; padding: 9px 14px; font-weight: 700; font-size: .88rem; }
+    .chip-btn svg { width: 18px; height: 18px; }
+    .w-good { color: var(--good); } .w-ok { color: var(--ok); } .w-bad { color: var(--bad); }
+    .heard { text-align: center; color: var(--muted); font-size: .95rem; min-height: 1.4em; margin-top: 4px; font-style: italic; }
+    .hint-box { background: rgba(124,92,255,.12); border: 1px dashed rgba(124,92,255,.5); border-radius: 16px; padding: 12px 14px; margin-bottom: 14px; text-align: center; }
+    .hint-box b { font-size: 1.2rem; }
+    .hint-box span { display: block; color: var(--muted); font-size: .85rem; margin-top: 2px; }
+
+    .opts { display: flex; flex-direction: column; gap: 10px; }
+    .opts button { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; padding: 16px; font-size: 1.05rem; font-weight: 600; text-align: left; transition: border-color .15s, background .15s; }
+    .opts button.good { border-color: var(--good); background: rgba(47,217,139,.12); }
+    .opts button.bad { border-color: var(--bad); background: rgba(255,93,108,.12); animation: shake .3s; }
+    @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+    /* Roleplay chat */
+    .scene { text-align: center; margin-bottom: 18px; }
+    .scene .e { font-size: 2.6rem; }
+    .scene b { display: block; font-size: 1.15rem; margin-top: 4px; }
+    .scene span { color: var(--muted); font-size: .9rem; }
+    .chat { display: flex; flex-direction: column; gap: 10px; padding-bottom: 8px; }
+    .msg { max-width: 84%; padding: 11px 14px; border-radius: 20px; line-height: 1.4; font-size: 1rem; animation: pop .2s ease-out; }
+    .msg.t { align-self: flex-start; background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 6px; }
+    .msg.u { align-self: flex-end; background: var(--grad); border-bottom-right-radius: 6px; }
+    .msg .tr { display: block; color: var(--muted); font-size: .85rem; margin-top: 4px; }
+    .msg .acts { display: flex; gap: 6px; margin-top: 8px; }
+    .msg .acts button { font-size: .78rem; font-weight: 700; color: var(--muted); background: var(--surface-2); border-radius: 99px; padding: 4px 10px; }
+    .fix { align-self: flex-end; max-width: 84%; background: rgba(255,193,69,.1); border: 1px solid rgba(255,193,69,.35); border-radius: 16px; padding: 10px 12px; font-size: .9rem; animation: pop .2s ease-out; }
+    .fix b { color: var(--ok); display: block; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 3px; }
+    .fix span { display: block; color: var(--muted); font-size: .83rem; margin-top: 4px; }
+    .task { background: var(--surface-2); border-radius: 18px; padding: 12px 14px; margin-top: 8px; animation: pop .2s ease-out; }
+    .task small { color: var(--accent-2); font-weight: 800; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+    .task p { font-weight: 600; margin-top: 2px; }
+    .typing { align-self: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 14px 16px; display: flex; gap: 5px; }
+    .typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: blink 1s infinite; }
+    .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+    @keyframes blink { 50% { opacity: .25; } }
+    @keyframes pop { from { transform: translateY(8px); opacity: 0; } }
+
+    /* Mic dock */
+    .dock { padding: 10px 20px calc(16px + env(safe-area-inset-bottom)); max-width: 640px; width: 100%; margin: 0 auto; }
+    .mic-row { display: flex; align-items: center; justify-content: center; gap: 26px; }
+    .side-btn { width: 52px; height: 52px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; }
+    .side-btn svg { width: 22px; height: 22px; }
+    .side-btn:disabled { opacity: .35; }
+    .mic { width: 84px; height: 84px; border-radius: 50%; background: var(--grad); display: grid; place-items: center; position: relative; box-shadow: 0 10px 30px rgba(124,92,255,.35); transition: transform .1s; }
+    .mic svg { width: 34px; height: 34px; color: #fff; }
+    .mic:active { transform: scale(.95); }
+    .mic.live { background: var(--bad); box-shadow: 0 10px 30px rgba(255,93,108,.4); }
+    .mic.live::before, .mic.live::after { content: ""; position: absolute; inset: -8px; border-radius: 50%; border: 2px solid var(--bad); animation: ripple 1.4s ease-out infinite; }
+    .mic.live::after { animation-delay: .7s; }
+    .mic:disabled { opacity: .4; }
+    @keyframes ripple { from { transform: scale(.9); opacity: .8; } to { transform: scale(1.35); opacity: 0; } }
+    .mic-cap { text-align: center; color: var(--muted); font-size: .85rem; font-weight: 600; margin-top: 10px; min-height: 1.2em; }
+    .type-row { display: flex; gap: 8px; }
+    .type-row .text-in { flex: 1; }
+    .type-row .send { width: 48px; height: 48px; border-radius: 50%; background: var(--grad); display: grid; place-items: center; flex-shrink: 0; }
+    .type-row .send svg { width: 20px; height: 20px; color: #fff; }
+    .swap { display: block; margin: 10px auto 0; color: var(--muted); font-weight: 600; font-size: .85rem; }
+
+    /* Feedback sheet */
+    .fb { padding: 16px 20px calc(18px + env(safe-area-inset-bottom)); border-radius: 26px 26px 0 0; background: var(--surface); border-top: 1px solid var(--border); animation: up .2s ease-out; }
+    .fb-inner { max-width: 600px; margin: 0 auto; }
+    .fb .head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .fb .score { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 1.05rem; flex-shrink: 0; }
+    .fb .score.g { background: rgba(47,217,139,.15); color: var(--good); }
+    .fb .score.o { background: rgba(255,193,69,.15); color: var(--ok); }
+    .fb .score.b { background: rgba(255,93,108,.15); color: var(--bad); }
+    .fb h3 { font-size: 1.2rem; }
+    .fb p { color: var(--muted); font-size: .9rem; }
+    @keyframes up { from { transform: translateY(30px); opacity: 0; } }
+
+    /* Overlays */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 50; display: flex; align-items: flex-end; justify-content: center; animation: fade .15s; }
+    .sheet { background: var(--surface); width: 100%; max-width: 560px; border-radius: 26px 26px 0 0; padding: 24px 20px calc(22px + env(safe-area-inset-bottom)); animation: up .2s ease-out; }
+    .sheet h2 { font-size: 1.3rem; margin-bottom: 6px; text-align: center; }
+    .sheet p { color: var(--muted); text-align: center; margin-bottom: 18px; line-height: 1.45; }
+    .sheet .text-in { margin-bottom: 14px; }
+    @keyframes fade { from { opacity: 0; } }
+
+    /* Lesson complete */
+    .done-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 20px; max-width: 520px; width: 100%; margin: 0 auto; }
+    .done-screen h1 { font-size: 2rem; letter-spacing: -0.02em; margin: 14px 0 6px; }
+    .done-screen p { color: var(--muted); margin-bottom: 22px; }
+    .done-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin-bottom: 26px; }
+    .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 60; }
+    .confetti i { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; animation: fall linear forwards; }
+    @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+
+    .toast { position: fixed; left: 50%; bottom: calc(var(--nav-h) + 24px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--surface-3); padding: 10px 16px; border-radius: 99px; font-weight: 600; font-size: .9rem; z-index: 90; animation: up .2s; white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#00b8ff"/></linearGradient>
+  </defs>
+</svg>
+
+<!-- Onboarding -->
+<div id="onboard" class="screen hidden"><div class="ob" id="obInner"></div></div>
+
+<!-- Main app -->
+<div id="app" class="screen hidden">
+  <div class="scroll" id="tabBody"></div>
+  <nav class="nav" id="nav">
+    <button data-tab="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Learn</span></button>
+    <button data-tab="talk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg><span>Tutor</span></button>
+    <button data-tab="practice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span>Practice</span></button>
+    <button data-tab="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Profile</span></button>
+  </nav>
+</div>
+
+<!-- Lesson / roleplay / free talk player -->
+<div id="player" class="screen hidden">
+  <div class="lp-top">
+    <button class="x-btn" id="quitBtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="pbar" id="pbarWrap"><i id="pbar" style="width:0%"></i></div>
+    <div id="topRight"></div>
+  </div>
+  <div class="lp-body" id="lpBody"></div>
+  <div id="lpDock"></div>
+</div>
+
+<script>
+'use strict';
+
+const APP_VERSION = 1;
+const SDK_URL = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.131.0/+esm';
+const TUTOR_MODEL = 'claude-opus-5-5';
+
+/* ---------- Icons ---------- */
+const IC = {
+  mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+  stop: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>',
+  play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>',
+  slow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16h15a3 3 0 0 0 3-3v0a2 2 0 0 0-2-2h-1"/><path d="M5 16a6 6 0 0 1 12 0"/><path d="M7 16v3M15 16v3"/><circle cx="19.5" cy="9" r="1.5"/></svg>',
+  keys: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>',
+  send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  bulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>',
+  skip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l9 7-9 7zM19 5v14"/></svg>',
+};
+
+/* ---------- Tutor (Lucía) ---------- */
+function avatar(cls = '') {
+  return `<svg class="avatar ${cls}" viewBox="0 0 100 100" aria-hidden="true">
+    <defs><linearGradient id="avg${cls}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#00b8ff"/></linearGradient>
+    <clipPath id="avc${cls}"><circle cx="50" cy="50" r="50"/></clipPath></defs>
+    <circle cx="50" cy="50" r="50" fill="url(#avg${cls})"/>
+    <g clip-path="url(#avc${cls})">
+      <path d="M22 60 Q18 22 50 20 Q82 22 78 60 L80 92 L20 92 Z" fill="#2b1a14"/>
+      <path d="M28 100 Q30 78 50 76 Q70 78 72 100 Z" fill="#ffd166"/>
+      <rect x="44" y="64" width="12" height="14" rx="5" fill="#d79a72"/>
+      <ellipse cx="50" cy="50" rx="19" ry="22" fill="#e8b08a"/>
+      <path d="M31 44 Q36 24 56 26 Q70 30 69 46 Q60 34 44 36 Q36 38 31 44Z" fill="#2b1a14"/>
+      <circle cx="43" cy="51" r="2.4" fill="#2b1a14"/><circle cx="57" cy="51" r="2.4" fill="#2b1a14"/>
+      <path d="M43 60 Q50 66 57 60" stroke="#8a3b2e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      <ellipse cx="38" cy="58" rx="4" ry="2.2" fill="#f28b82" opacity=".45"/><ellipse cx="62" cy="58" rx="4" ry="2.2" fill="#f28b82" opacity=".45"/>
+      <circle cx="31" cy="56" r="2" fill="#ffd166"/><circle cx="69" cy="56" r="2" fill="#ffd166"/>
+    </g></svg>`;
+}
+
+/* ---------- Course ----------
+   phrases: [spanish, english]
+   roleplay lines: ['t', tutor spanish, english]  or  ['u', task in english, [accepted spanish answers]]
+   In answers, * stands for "anything" (a name, a city...). The first answer is the one shown as a hint. */
+const COURSE = [
+  { title: 'Getting started', desc: 'Meet people and introduce yourself', lessons: [
+    { title: 'Saying hi', icon: '👋', goal: 'Greet someone and say your name',
+      phrases: [['¡Hola! ¿Qué tal?','Hi! How are you?'],['Muy bien, gracias. ¿Y tú?','Very well, thanks. And you?'],['¿Cómo te llamas?','What\'s your name?'],['Me llamo Andrés.','My name is Andrés.'],['Mucho gusto.','Nice to meet you.']],
+      rp: { scene: 'At a friend\'s party', icon: '🎉', lines: [
+        ['t','¡Hola! ¿Qué tal?','Hi! How are you?'],
+        ['u','Say you\'re very well, and ask how she is',['Muy bien, gracias. ¿Y tú?','Muy bien. ¿Y tú?','Bien, gracias, ¿y tú?']],
+        ['t','¡Muy bien! Me llamo Lucía. ¿Cómo te llamas?','Great! My name is Lucía. What\'s your name?'],
+        ['u','Tell her your name',['Me llamo *','Soy *','Mi nombre es *']],
+        ['t','¡Encantada!','Delighted to meet you!'],
+        ['u','Say "nice to meet you"',['Mucho gusto.','Igualmente.','Encantado.','Encantada.']],
+        ['t','¡Igualmente! ¿Quieres algo de beber?','Likewise! Do you want something to drink?'],
+      ] } },
+    { title: 'Where are you from?', icon: '🌎', goal: 'Talk about where you\'re from and live',
+      phrases: [['¿De dónde eres?','Where are you from?'],['Soy de Estados Unidos.','I\'m from the United States.'],['¿Dónde vives?','Where do you live?'],['Vivo en Chicago.','I live in Chicago.'],['¡Qué bien!','How nice!']],
+      rp: { scene: 'Meeting a classmate', icon: '🏫', lines: [
+        ['t','¿De dónde eres?','Where are you from?'],
+        ['u','Say you\'re from the United States',['Soy de Estados Unidos.','Soy de los Estados Unidos.','Soy estadounidense.']],
+        ['t','¡Qué bien! ¿Y dónde vives ahora?','How nice! And where do you live now?'],
+        ['u','Say which city you live in',['Vivo en *']],
+        ['t','Yo soy de México, pero vivo aquí. ¿Te gusta tu ciudad?','I\'m from Mexico, but I live here. Do you like your city?'],
+        ['u','Say yes, you like it a lot',['Sí, me gusta mucho.','Sí, me encanta.','Sí, mucho.']],
+        ['t','¡Qué padre!','How cool!'],
+      ] } },
+    { title: 'What do you do?', icon: '💼', goal: 'Talk about your job and hobbies',
+      phrases: [['¿A qué te dedicas?','What do you do (for work)?'],['Soy estudiante.','I\'m a student.'],['Trabajo en una oficina.','I work in an office.'],['¿Qué te gusta hacer?','What do you like to do?'],['Me gusta la música.','I like music.']],
+      rp: { scene: 'Coffee with a new friend', icon: '☕', lines: [
+        ['t','Oye, ¿a qué te dedicas?','Hey, what do you do?'],
+        ['u','Say you\'re a student — or that you work in an office',['Soy estudiante.','Trabajo en una oficina.','Trabajo en *','Soy *']],
+        ['t','¡Interesante! ¿Y qué te gusta hacer en tu tiempo libre?','Interesting! And what do you like to do in your free time?'],
+        ['u','Say you like music',['Me gusta la música.','Me gusta *','Me encanta la música.']],
+        ['t','¡A mí también! ¿Tocas algún instrumento?','Me too! Do you play an instrument?'],
+        ['u','Say yes, you play the guitar — or no, you don\'t',['Sí, toco la guitarra.','No, no toco ningún instrumento.','Sí, toco *','No.']],
+        ['t','¡Genial!','Awesome!'],
+      ] } },
+    { title: 'Saying goodbye', icon: '🚪', goal: 'End a conversation politely',
+      phrases: [['Tengo que irme.','I have to go.'],['Fue un placer.','It was a pleasure.'],['Hasta luego.','See you later.'],['Nos vemos mañana.','See you tomorrow.'],['¡Cuídate!','Take care!']],
+      rp: { scene: 'Leaving the party', icon: '🌙', lines: [
+        ['t','¿Ya te vas?','Are you leaving already?'],
+        ['u','Say you have to go',['Sí, tengo que irme.','Tengo que irme.','Sí, ya me voy.']],
+        ['t','¡Qué lástima! Fue un placer conocerte.','What a shame! It was a pleasure to meet you.'],
+        ['u','Say it was a pleasure too',['Igualmente, fue un placer.','Fue un placer.','Igualmente.']],
+        ['t','¿Nos vemos mañana en clase?','See you tomorrow in class?'],
+        ['u','Say yes, see you tomorrow, take care',['Sí, nos vemos mañana. ¡Cuídate!','Sí, nos vemos mañana.','Sí, hasta mañana.']],
+        ['t','¡Hasta mañana!','See you tomorrow!'],
+      ] } },
+  ] },
+  { title: 'Café & food', desc: 'Order coffee, eat out and go shopping', lessons: [
+    { title: 'Ordering coffee', icon: '☕', goal: 'Order a drink and pay',
+      phrases: [['Quisiera un café con leche.','I\'d like a coffee with milk.'],['Para llevar, por favor.','To go, please.'],['¿Cuánto es?','How much is it?'],['¿Puedo pagar con tarjeta?','Can I pay by card?'],['Aquí tiene.','Here you go.']],
+      rp: { scene: 'At a café in Madrid', icon: '🥐', lines: [
+        ['t','¡Buenos días! ¿Qué le pongo?','Good morning! What can I get you?'],
+        ['u','Order a coffee with milk',['Quisiera un café con leche.','Un café con leche, por favor.','Quiero un café con leche.']],
+        ['t','Muy bien. ¿Para tomar aquí o para llevar?','Very good. For here or to go?'],
+        ['u','Say it\'s to go',['Para llevar, por favor.','Para llevar.']],
+        ['t','Son tres euros.','That\'s three euros.'],
+        ['u','Ask if you can pay by card',['¿Puedo pagar con tarjeta?','¿Aceptan tarjeta?','¿Con tarjeta?']],
+        ['t','Sí, claro. ¡Que tenga un buen día!','Yes, of course. Have a nice day!'],
+      ] } },
+    { title: 'At a restaurant', icon: '🍽️', goal: 'Get a table, order and ask for the check',
+      phrases: [['Una mesa para dos, por favor.','A table for two, please.'],['¿Qué me recomienda?','What do you recommend?'],['Para mí, la paella.','For me, the paella.'],['Sin cebolla, por favor.','Without onion, please.'],['La cuenta, por favor.','The check, please.']],
+      rp: { scene: 'A busy restaurant', icon: '🥘', lines: [
+        ['t','Buenas noches. ¿Cuántos son?','Good evening. How many are you?'],
+        ['u','Ask for a table for two',['Una mesa para dos, por favor.','Somos dos.','Para dos, por favor.']],
+        ['t','Por aquí, por favor. ¿Ya saben qué van a pedir?','This way, please. Do you know what you\'ll order?'],
+        ['u','Ask what she recommends',['¿Qué me recomienda?','¿Qué recomienda?','¿Qué nos recomienda?']],
+        ['t','La paella está muy rica hoy.','The paella is really good today.'],
+        ['u','Order the paella',['Para mí, la paella.','La paella, por favor.','Quiero la paella.']],
+        ['t','¡Excelente elección!','Excellent choice!'],
+      ] } },
+    { title: 'Food you love', icon: '🌮', goal: 'Say what you like, dislike and need',
+      phrases: [['Tengo hambre.','I\'m hungry.'],['Tengo sed.','I\'m thirsty.'],['Me encanta la comida mexicana.','I love Mexican food.'],['No me gusta el pescado.','I don\'t like fish.'],['¡Está delicioso!','It\'s delicious!']],
+      rp: { scene: 'Lunch at Lucía\'s house', icon: '🏡', lines: [
+        ['t','¿Tienes hambre?','Are you hungry?'],
+        ['u','Say yes, you\'re very hungry',['Sí, tengo mucha hambre.','Sí, tengo hambre.']],
+        ['t','Hice tacos de pescado. ¿Te gusta el pescado?','I made fish tacos. Do you like fish?'],
+        ['u','Say yes, you love Mexican food — or that you don\'t like fish',['Sí, me encanta la comida mexicana.','No me gusta el pescado.','Sí, me gusta el pescado.']],
+        ['t','¡Pruébalo! ¿Qué tal?','Try it! How is it?'],
+        ['u','Say it\'s delicious',['¡Está delicioso!','Está muy rico.','¡Delicioso!']],
+        ['t','¡Me alegro mucho!','I\'m so glad!'],
+      ] } },
+    { title: 'At the market', icon: '🍅', goal: 'Buy things and ask about prices',
+      phrases: [['¿Tiene manzanas?','Do you have apples?'],['Quiero un kilo de tomates.','I want a kilo of tomatoes.'],['¿Cuánto cuestan?','How much do they cost?'],['Es muy caro.','It\'s very expensive.'],['Nada más, gracias.','Nothing else, thanks.']],
+      rp: { scene: 'A market stall', icon: '🧺', lines: [
+        ['t','¡Hola! ¿Qué le doy?','Hi! What can I give you?'],
+        ['u','Say you want a kilo of tomatoes',['Quiero un kilo de tomates.','Un kilo de tomates, por favor.']],
+        ['t','Aquí tiene. ¿Algo más?','Here you go. Anything else?'],
+        ['u','Ask if she has apples',['¿Tiene manzanas?','¿Hay manzanas?']],
+        ['t','Sí, estas son muy dulces.','Yes, these are very sweet.'],
+        ['u','Ask how much they cost',['¿Cuánto cuestan?','¿Cuánto valen?','¿A cuánto están?']],
+        ['t','Dos euros el kilo.','Two euros a kilo.'],
+      ] } },
+  ] },
+  { title: 'Getting around', desc: 'Directions, transport, hotels and help', lessons: [
+    { title: 'Asking directions', icon: '🧭', goal: 'Find your way around town',
+      phrases: [['Perdón, ¿dónde está el baño?','Excuse me, where is the bathroom?'],['¿Cómo llego a la estación?','How do I get to the station?'],['Siga todo recto.','Go straight ahead.'],['Gire a la derecha.','Turn right.'],['¿Está cerca?','Is it close?']],
+      rp: { scene: 'On a street corner', icon: '🗺️', lines: [
+        ['t','¿Te puedo ayudar?','Can I help you?'],
+        ['u','Ask how to get to the station',['¿Cómo llego a la estación?','¿Dónde está la estación?']],
+        ['t','Sigue todo recto y gira a la derecha.','Go straight ahead and turn right.'],
+        ['u','Ask if it\'s close',['¿Está cerca?','¿Está lejos?']],
+        ['t','Sí, está a cinco minutos.','Yes, it\'s five minutes away.'],
+        ['u','Thank her a lot',['¡Muchas gracias!','Gracias.','Mil gracias.']],
+        ['t','¡De nada! ¡Buen viaje!','You\'re welcome! Have a good trip!'],
+      ] } },
+    { title: 'Taxis & trains', icon: '🚆', goal: 'Buy a ticket and take a ride',
+      phrases: [['Un billete para Madrid, por favor.','A ticket to Madrid, please.'],['¿A qué hora sale el tren?','What time does the train leave?'],['Lléveme a este hotel, por favor.','Take me to this hotel, please.'],['¿Cuánto tarda?','How long does it take?'],['Me bajo aquí.','I\'ll get off here.']],
+      rp: { scene: 'At the ticket office', icon: '🎫', lines: [
+        ['t','Buenos días, ¿a dónde va?','Good morning, where are you going?'],
+        ['u','Ask for a ticket to Madrid',['Un billete para Madrid, por favor.','Un boleto para Madrid, por favor.','Para Madrid, por favor.']],
+        ['t','Aquí tiene. Son veinte euros.','Here you go. That\'s twenty euros.'],
+        ['u','Ask what time the train leaves',['¿A qué hora sale el tren?','¿Cuándo sale el tren?']],
+        ['t','Sale a las diez, del andén tres.','It leaves at ten, from platform three.'],
+        ['u','Ask how long it takes',['¿Cuánto tarda?','¿Cuánto tiempo tarda?']],
+        ['t','Unas dos horas.','About two hours.'],
+      ] } },
+    { title: 'At the hotel', icon: '🏨', goal: 'Check in and solve problems',
+      phrases: [['Tengo una reserva.','I have a reservation.'],['Está a nombre de Andrés.','It\'s under the name Andrés.'],['¿A qué hora es el desayuno?','What time is breakfast?'],['El aire acondicionado no funciona.','The air conditioning doesn\'t work.'],['¿Me da la llave, por favor?','Can I have the key, please?']],
+      rp: { scene: 'Hotel front desk', icon: '🛎️', lines: [
+        ['t','Bienvenido. ¿En qué le puedo ayudar?','Welcome. How can I help you?'],
+        ['u','Say you have a reservation',['Tengo una reserva.','Tengo una reservación.']],
+        ['t','¿A nombre de quién?','Under whose name?'],
+        ['u','Give your name',['Está a nombre de *','A nombre de *','Me llamo *']],
+        ['t','Perfecto, habitación doce. ¿Algo más?','Perfect, room twelve. Anything else?'],
+        ['u','Ask what time breakfast is',['¿A qué hora es el desayuno?','¿Cuándo es el desayuno?']],
+        ['t','De siete a diez de la mañana.','From seven to ten in the morning.'],
+      ] } },
+    { title: 'Asking for help', icon: '🆘', goal: 'Handle not understanding',
+      phrases: [['No entiendo.','I don\'t understand.'],['¿Puede hablar más despacio?','Can you speak more slowly?'],['¿Me puede ayudar?','Can you help me?'],['¿Cómo se dice "key" en español?','How do you say "key" in Spanish?'],['¿Habla inglés?','Do you speak English?']],
+      rp: { scene: 'At a pharmacy', icon: '💊', lines: [
+        ['t','Hola, ¿qué necesita? Tenemos de todo para el resfriado y la tos.','Hi, what do you need? We have everything for colds and coughs.'],
+        ['u','Say you don\'t understand',['No entiendo.','Perdón, no entiendo.']],
+        ['t','¿Qué necesita?','What do you need?'],
+        ['u','Ask her to speak more slowly',['¿Puede hablar más despacio?','Más despacio, por favor.']],
+        ['t','Claro. ¿Qué... necesita?','Sure. What... do you need?'],
+        ['u','Ask if she can help you',['¿Me puede ayudar?','Necesito ayuda.','¿Puede ayudarme?']],
+        ['t','¡Por supuesto!','Of course!'],
+      ] } },
+  ] },
+  { title: 'Daily life', desc: 'Routines, plans, family and weather', lessons: [
+    { title: 'Your routine', icon: '⏰', goal: 'Describe a typical day',
+      phrases: [['Me levanto a las siete.','I get up at seven.'],['Desayuno en casa.','I have breakfast at home.'],['Voy al trabajo en metro.','I go to work by subway.'],['Por la tarde hago ejercicio.','In the afternoon I exercise.'],['Me acuesto tarde.','I go to bed late.']],
+      rp: { scene: 'Chatting at work', icon: '🗓️', lines: [
+        ['t','¿A qué hora te levantas?','What time do you get up?'],
+        ['u','Say you get up at seven',['Me levanto a las siete.','A las siete.']],
+        ['t','¡Qué temprano! ¿Cómo vas al trabajo?','So early! How do you get to work?'],
+        ['u','Say you go to work by subway',['Voy al trabajo en metro.','Voy en metro.','Voy en *']],
+        ['t','¿Y qué haces por la tarde?','And what do you do in the afternoon?'],
+        ['u','Say you exercise in the afternoon',['Por la tarde hago ejercicio.','Hago ejercicio.']],
+        ['t','¡Muy bien!','Very good!'],
+      ] } },
+    { title: 'Weekend plans', icon: '🎬', goal: 'Make and accept invitations',
+      phrases: [['¿Qué vas a hacer este fin de semana?','What are you going to do this weekend?'],['Voy a ver a mis amigos.','I\'m going to see my friends.'],['¿Quieres ir al cine?','Do you want to go to the movies?'],['¡Claro que sí!','Of course!'],['Hoy no puedo.','I can\'t today.']],
+      rp: { scene: 'Friday after class', icon: '🍿', lines: [
+        ['t','¿Qué vas a hacer este fin de semana?','What are you going to do this weekend?'],
+        ['u','Say you\'re going to see your friends',['Voy a ver a mis amigos.','Voy a *']],
+        ['t','¡Qué bien! ¿Quieres ir al cine el domingo?','Nice! Do you want to go to the movies on Sunday?'],
+        ['u','Say "of course!"',['¡Claro que sí!','¡Claro!','Sí, ¡me encantaría!']],
+        ['t','¿Y hoy? ¿Vamos a cenar?','And today? Shall we go to dinner?'],
+        ['u','Say you can\'t today',['Hoy no puedo.','Lo siento, hoy no puedo.']],
+        ['t','No pasa nada. ¡Nos vemos el domingo!','No problem. See you on Sunday!'],
+      ] } },
+    { title: 'Your family', icon: '👨‍👩‍👧', goal: 'Talk about the people in your life',
+      phrases: [['Tengo dos hermanos.','I have two siblings.'],['Mi madre es profesora.','My mother is a teacher.'],['¿Tienes hijos?','Do you have kids?'],['Mi familia vive en Texas.','My family lives in Texas.'],['Somos muy unidos.','We\'re very close.']],
+      rp: { scene: 'Looking at photos', icon: '📸', lines: [
+        ['t','¿Tienes hermanos?','Do you have siblings?'],
+        ['u','Say you have two siblings',['Tengo dos hermanos.','Sí, tengo dos hermanos.','Tengo * hermanos.','No tengo hermanos.']],
+        ['t','¿Y dónde vive tu familia?','And where does your family live?'],
+        ['u','Say where your family lives',['Mi familia vive en *','Viven en *']],
+        ['t','¿Los ves mucho?','Do you see them a lot?'],
+        ['u','Say yes, you\'re very close',['Sí, somos muy unidos.','Sí, mucho.']],
+        ['t','¡Qué bonito!','How lovely!'],
+      ] } },
+    { title: 'Time & weather', icon: '🌦️', goal: 'Tell the time and talk weather',
+      phrases: [['¿Qué hora es?','What time is it?'],['Son las tres y media.','It\'s half past three.'],['Hace calor hoy.','It\'s hot today.'],['Está lloviendo.','It\'s raining.'],['Mañana va a hacer frío.','Tomorrow it\'s going to be cold.']],
+      rp: { scene: 'Waiting at the bus stop', icon: '🚏', lines: [
+        ['t','Perdona, ¿qué hora es?','Excuse me, what time is it?'],
+        ['u','Say it\'s half past three',['Son las tres y media.','Son las *']],
+        ['t','Gracias. ¡Uf, hace mucho calor hoy!','Thanks. Phew, it\'s really hot today!'],
+        ['u','Agree that it\'s hot today',['Sí, hace calor hoy.','Sí, hace mucho calor.','Sí, mucho calor.']],
+        ['t','Dicen que mañana va a llover.','They say it\'s going to rain tomorrow.'],
+        ['u','Say tomorrow it\'s going to be cold',['Mañana va a hacer frío.','Y va a hacer frío.']],
+        ['t','¡Qué loco es el clima!','The weather is so crazy!'],
+      ] } },
+  ] },
+  { title: 'Real conversations', desc: 'Feelings, the past, opinions and plans', lessons: [
+    { title: 'How you feel', icon: '😊', goal: 'Share how you\'re feeling',
+      phrases: [['Estoy cansado.','I\'m tired.'],['Estoy muy contento.','I\'m very happy.'],['¿Qué te pasa?','What\'s wrong?'],['Estoy un poco estresado.','I\'m a little stressed.'],['No te preocupes.','Don\'t worry.']],
+      rp: { scene: 'A friend checks in', icon: '💬', lines: [
+        ['t','Te veo raro. ¿Qué te pasa?','You seem off. What\'s wrong?'],
+        ['u','Say you\'re a little stressed',['Estoy un poco estresado.','Estoy un poco estresada.','Estoy estresado.','Estoy estresada.']],
+        ['t','¿Por el trabajo?','Because of work?'],
+        ['u','Say yes, and that you\'re tired',['Sí, y estoy cansado.','Sí, y estoy cansada.','Sí, estoy muy cansado.','Sí, estoy muy cansada.']],
+        ['t','Tranquilo, el fin de semana vas a descansar.','Relax, you\'ll rest on the weekend.'],
+        ['u','Thank her, say you\'re happy to have her as a friend',['Gracias, estoy muy contento.','Gracias, estoy muy contenta.','Gracias, eres muy buena amiga.','Gracias.']],
+        ['t','¡Para eso están los amigos!','That\'s what friends are for!'],
+      ] } },
+    { title: 'Last weekend', icon: '🏖️', goal: 'Talk about what you did',
+      phrases: [['¿Qué hiciste ayer?','What did you do yesterday?'],['Fui a la playa.','I went to the beach.'],['Comí con mi familia.','I ate with my family.'],['Vi una película.','I watched a movie.'],['Lo pasé muy bien.','I had a great time.']],
+      rp: { scene: 'Monday morning', icon: '☀️', lines: [
+        ['t','¡Hola! ¿Qué hiciste el fin de semana?','Hi! What did you do on the weekend?'],
+        ['u','Say you went to the beach',['Fui a la playa.','Fui a *']],
+        ['t','¡Qué envidia! ¿Y el domingo?','I\'m jealous! And on Sunday?'],
+        ['u','Say you ate with your family',['Comí con mi familia.','Vi una película.']],
+        ['t','¿Lo pasaste bien?','Did you have a good time?'],
+        ['u','Say you had a great time',['Lo pasé muy bien.','Sí, lo pasé muy bien.','Sí, muy bien.']],
+        ['t','¡Me alegro!','I\'m glad!'],
+      ] } },
+    { title: 'Giving opinions', icon: '🤔', goal: 'Agree, disagree and hedge',
+      phrases: [['Creo que sí.','I think so.'],['En mi opinión, es una buena idea.','In my opinion, it\'s a good idea.'],['Estoy de acuerdo.','I agree.'],['No estoy seguro.','I\'m not sure.'],['Depende.','It depends.']],
+      rp: { scene: 'Planning a trip together', icon: '✈️', lines: [
+        ['t','¿Vamos a Barcelona en verano?','Shall we go to Barcelona in the summer?'],
+        ['u','Say in your opinion it\'s a good idea',['En mi opinión, es una buena idea.','Es una buena idea.','Creo que es una buena idea.']],
+        ['t','Pero hace mucho calor en verano, ¿no?','But it\'s very hot in summer, isn\'t it?'],
+        ['u','Say you think so',['Creo que sí.','Sí, creo que sí.']],
+        ['t','¿Mejor vamos en primavera?','Should we go in the spring instead?'],
+        ['u','Say you agree',['Estoy de acuerdo.','Sí, estoy de acuerdo.','De acuerdo.']],
+        ['t','¡Perfecto, decidido!','Perfect, it\'s decided!'],
+      ] } },
+    { title: 'Making plans', icon: '📱', goal: 'Set a time and place to meet',
+      phrases: [['¿Te viene bien el sábado?','Does Saturday work for you?'],['Quedamos a las ocho.','Let\'s meet at eight.'],['Te mando un mensaje.','I\'ll send you a message.'],['Llego un poco tarde.','I\'m running a little late.'],['¡Nos vemos allí!','See you there!']],
+      rp: { scene: 'A phone call', icon: '📞', lines: [
+        ['t','¿Cenamos juntos esta semana?','Shall we have dinner together this week?'],
+        ['u','Ask if Saturday works for her',['¿Te viene bien el sábado?','¿El sábado?','¿Qué tal el sábado?']],
+        ['t','¡Sí! ¿A qué hora?','Yes! What time?'],
+        ['u','Suggest meeting at eight',['Quedamos a las ocho.','A las ocho.','¿A las ocho?']],
+        ['t','Perfecto. ¿Me mandas la dirección?','Perfect. Will you send me the address?'],
+        ['u','Say you\'ll send her a message, see you there',['Te mando un mensaje. ¡Nos vemos allí!','Te mando un mensaje.','Sí, te mando un mensaje.']],
+        ['t','¡Genial, hasta el sábado!','Great, see you Saturday!'],
+      ] } },
+  ] },
+];
+
+const TOPICS = [
+  { e: '☕', t: 'Ordering at a café', s: 'Lucía is your barista' },
+  { e: '👋', t: 'Getting to know you', s: 'Small talk about you' },
+  { e: '🏖️', t: 'Your weekend', s: 'What you did and will do' },
+  { e: '✈️', t: 'Planning a trip', s: 'Where should you go?' },
+  { e: '🍳', t: 'Food & cooking', s: 'Favorite dishes and recipes' },
+  { e: '💼', t: 'Job interview', s: 'Practice for a real one' },
+  { e: '🎵', t: 'Music & movies', s: 'What you love and why' },
+  { e: '🎲', t: 'Surprise me', s: 'Lucía picks the topic' },
+];
+
+/* ---------- State ---------- */
+const KEY = 'charla-v1';
+const DEFAULT = {
+  onboarded: false, name: '', level: 'new', goalMin: 10,
+  accent: 'es-MX', rate: 1, showEn: true, apiKey: '',
+  done: {},       // 'u-l' -> { best, at }
+  phrases: {},    // spanish -> { en, score, tries, last }
+  days: {},       // 'YYYY-MM-DD' -> seconds practiced
+  streak: 0, lastDay: null, best: 0,
+  spoken: 0,      // phrases spoken
+};
+let S;
+try { S = Object.assign({}, DEFAULT, JSON.parse(localStorage.getItem(KEY) || '{}')); }
+catch { S = Object.assign({}, DEFAULT); }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const yesterday = () => { const d = new Date(); d.setDate(d.getDate() - 1); return dayKey(d); };
+const curStreak = () => (S.lastDay === dayKey() || S.lastDay === yesterday()) ? S.streak : 0;
+const todaySec = () => S.days[dayKey()] || 0;
+const lid = (u, l) => `${u}-${l}`;
+const allLessons = () => COURSE.flatMap((u, ui) => u.lessons.map((l, li) => ({ u: ui, l: li, lesson: l })));
+function nextLesson() { return allLessons().find(x => !S.done[lid(x.u, x.l)]) || null; }
+function unlocked(u, l) {
+  const list = allLessons(); const i = list.findIndex(x => x.u === u && x.l === l);
+  return i === 0 || !!S.done[lid(list[i-1].u, list[i-1].l)] || !!S.done[lid(u, l)];
+}
+function toast(msg) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2200);
+}
+
+/* Practice timer: counts while a lesson or conversation is open and visible */
+let timerOn = false;
+setInterval(() => {
+  if (!timerOn || document.hidden) return;
+  const k = dayKey(); S.days[k] = (S.days[k] || 0) + 1;
+  if (S.days[k] % 10 === 0) save();
+}, 1000);
+
+function markStreak() {
+  const t = dayKey();
+  if (S.lastDay === t) return false;
+  S.streak = S.lastDay === yesterday() ? S.streak + 1 : 1;
+  S.lastDay = t; S.best = Math.max(S.best, S.streak);
+  return true;
+}
+
+/* ---------- Voice: text to speech ---------- */
+let voices = [];
+function loadVoices() { voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
+if (window.speechSynthesis) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+function pickVoice() {
+  const es = voices.filter(v => /^es/i.test(v.lang));
+  const want = S.accent.toLowerCase();
+  const exact = es.filter(v => v.lang.toLowerCase().replace('_','-') === want);
+  const pool = exact.length ? exact : (want === 'es-mx' ? es.filter(v => /us|419|mx/i.test(v.lang)) : []).concat(es);
+  // Prefer the nicer voices most platforms ship
+  return pool.find(v => /premium|enhanced|natural|google|paulina|monica|mónica|lucia|lucía/i.test(v.name)) || pool[0] || null;
+}
+function say(text, slow = false) {
+  return new Promise(resolve => {
+    if (!window.speechSynthesis) return resolve();
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const v = pickVoice(); if (v) u.voice = v;
+    u.lang = v ? v.lang : S.accent;
+    u.rate = (slow ? 0.6 : 0.95) * S.rate;
+    let done = false; const fin = () => { if (!done) { done = true; resolve(); } };
+    u.onend = fin; u.onerror = fin;
+    setTimeout(fin, 1500 + text.length * 140 / u.rate);
+    speechSynthesis.speak(u);
+  });
+}
+
+/* ---------- Voice: speech recognition ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let micBlocked = false;
+let rec = null;
+const canSpeak = () => !!SR && !micBlocked;
+
+function listen(onInterim) {
+  return new Promise((resolve, reject) => {
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    rec = new SR();
+    rec.lang = S.accent; rec.interimResults = true; rec.maxAlternatives = 4; rec.continuous = false;
+    let finals = [], interim = '', settled = false;
+    const finish = () => {
+      if (settled) return; settled = true; rec = null;
+      const alts = finals.length ? finals : (interim ? [interim] : []);
+      resolve(alts);
+    };
+    rec.onresult = e => {
+      interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) { finals = Array.from(r).map(a => a.transcript); }
+        else interim += r[0].transcript;
+      }
+      onInterim && onInterim(finals[0] || interim);
+    };
+    rec.onerror = e => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { micBlocked = true; settled = true; rec = null; reject(e.error); }
+      else if (e.error === 'no-speech' || e.error === 'aborted') finish();
+      else { settled = true; rec = null; reject(e.error); }
+    };
+    rec.onend = finish;
+    try { rec.start(); } catch (err) { settled = true; rec = null; reject(err); }
+  });
+}
+function stopListening() { if (rec) try { rec.stop(); } catch {} }
+
+/* ---------- Pronunciation scoring ---------- */
+const NUMS = { 0:'cero',1:'uno',2:'dos',3:'tres',4:'cuatro',5:'cinco',6:'seis',7:'siete',8:'ocho',9:'nueve',10:'diez',11:'once',12:'doce',15:'quince',20:'veinte',30:'treinta' };
+function norm(s) {
+  return String(s).toLowerCase()
+    .replace(/\b(\d{1,2}):(\d{2})\b/g, (m, h, mm) => `${h} ${mm === '30' ? 'y media' : mm === '15' ? 'y cuarto' : mm === '00' ? '' : mm}`)
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[¿?¡!.,;:"“”«»()…\-]/g, ' ')
+    .split(/\s+/).filter(Boolean)
+    .map(w => /^\d+$/.test(w) && NUMS[+w] ? NUMS[+w] : w)
+    .join(' ');
+}
+function lev(a, b) {
+  const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+const sim = (a, b) => a === b ? 1 : 1 - lev(a, b) / Math.max(a.length, b.length);
+
+// Aligns the spoken words against the target and returns a 0-1 score plus a per-word grade
+function grade(target, spoken) {
+  const disp = target.split(/\s+/);
+  const T = [], map = [];
+  disp.forEach((d, i) => { if (d === '*') return; norm(d).split(' ').filter(Boolean).forEach(w => { T.push(w); map.push(i); }); });
+  const Sp = norm(spoken).split(' ').filter(Boolean);
+  const m = T.length, n = Sp.length;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) {
+    const s = sim(T[i-1], Sp[j-1]);
+    dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1], s >= 0.5 ? dp[i-1][j-1] + s : -1);
+  }
+  const ws = new Array(m).fill(0);
+  let i = m, j = n;
+  while (i > 0 && j > 0) {
+    const s = sim(T[i-1], Sp[j-1]);
+    if (s >= 0.5 && dp[i][j] === dp[i-1][j-1] + s) { ws[i-1] = s; i--; j--; }
+    else if (dp[i][j] === dp[i-1][j]) i--;
+    else j--;
+  }
+  const score = m ? ws.reduce((a, b) => a + b, 0) / m : (n ? 1 : 0);
+  // Grade each display word by its weakest part
+  const words = disp.map((d, k) => {
+    if (d === '*') return { d: '___', c: 'good' };
+    const parts = ws.filter((_, x) => map[x] === k);
+    const v = parts.length ? Math.min(...parts) : 1;
+    return { d, c: v >= 0.85 ? 'good' : v >= 0.5 ? 'ok' : 'bad' };
+  });
+  return { score, words };
+}
+function bestGrade(targets, alts) {
+  let best = { score: -1 };
+  for (const t of targets) for (const a of alts) {
+    const g = grade(t, a); if (g.score > best.score) best = { ...g, target: t, heard: a };
+  }
+  return best;
+}
+const pct = s => Math.round(Math.max(0, s) * 100);
+const cls = s => s >= 0.85 ? 'g' : s >= 0.6 ? 'o' : 'b';
+function verdict(s) {
+  if (s >= 0.95) return ['¡Perfecto!', 'Native-level pronunciation.'];
+  if (s >= 0.85) return ['¡Excelente!', 'Really clear — nice work.'];
+  if (s >= 0.7) return ['¡Muy bien!', 'Good! Tap the words in orange to hear them again.'];
+  if (s >= 0.5) return ['¡Casi!', 'Almost there. Listen once more and try again.'];
+  return ['Try again', 'I didn\'t quite catch that. Listen, then say it again.'];
+}
+const coloredWords = g => g.words.map(w => `<span class="w-${w.c}">${esc(w.d)}</span>`).join(' ');
+
+function recordPhrase(es, en, score) {
+  const p = S.phrases[es] || { en, score: 0, tries: 0 };
+  p.en = en; p.tries++; p.last = Date.now();
+  p.score = p.tries === 1 ? score : Math.round(p.score * 0.4 + score * 0.6);
+  S.phrases[es] = p; S.spoken++;
+}
+
+/* ---------- Onboarding ---------- */
+const OB = { step: 0 };
+function renderOnboard() {
+  $('#app').classList.add('hidden'); $('#onboard').classList.remove('hidden');
+  const el = $('#obInner'); const st = OB.step;
+  const dots = `<div class="dots">${[0,1,2,3].map(i => `<i class="${i === st ? 'on' : ''}"></i>`).join('')}</div>`;
+  if (st === 0) {
+    el.innerHTML = `<div class="ob-body">
+      <div class="welcome-art">${avatar('xl')}
+        <div class="bub" style="left:4%;top:8%">¡Hola! 👋</div>
+        <div class="bub" style="right:2%;top:40%;animation-delay:.8s">¿Qué tal?</div>
+        <div class="bub" style="left:10%;bottom:-6px;animation-delay:1.6s">Mucho gusto</div>
+      </div>
+      <h1>Speak Spanish <em>out loud</em> from day one.</h1>
+      <p class="lead">I'm Lucía, your tutor. You'll learn real phrases, say them out loud, get instant pronunciation feedback and practice conversations with me.</p>
+    </div>${dots}<button class="btn" id="obNext">Get started</button>`;
+  } else if (st === 1) {
+    const L = [['new','🌱','I\'m new to Spanish','Start from the very beginning'],['some','🌿','I know some words','Basic phrases, but can\'t chat yet'],['conv','🌳','I can hold a conversation','I want to get more fluent']];
+    el.innerHTML = `<div class="ob-body"><h1>How much Spanish do you know?</h1><p class="lead">This helps Lucía pitch conversations at the right level.</p>
+      ${L.map(([k, e, t, s]) => `<button class="opt ${S.level === k ? 'on' : ''}" data-level="${k}"><span class="e">${e}</span><div><b>${t}</b><span>${s}</span></div></button>`).join('')}
+    </div>${dots}<button class="btn" id="obNext">Continue</button>`;
+  } else if (st === 2) {
+    const G = [[5,'Casual'],[10,'Regular'],[15,'Serious'],[20,'Intense']];
+    el.innerHTML = `<div class="ob-body"><h1>Pick a daily speaking goal</h1><p class="lead">A few minutes every day beats an hour once a week.</p>
+      ${G.map(([m, t]) => `<button class="opt ${S.goalMin === m ? 'on' : ''}" data-goal="${m}"><span class="e">⏱️</span><div><b>${m} min / day</b><span>${t}</span></div></button>`).join('')}
+      <div class="setting" style="margin-top:6px"><label>Accent<small>Which Spanish do you want to hear?</small></label>
+        <div class="seg" id="obAccent"><button data-a="es-MX" class="${S.accent === 'es-MX' ? 'on' : ''}">🇲🇽 Latin America</button><button data-a="es-ES" class="${S.accent === 'es-ES' ? 'on' : ''}">🇪🇸 Spain</button></div></div>
+    </div>${dots}<button class="btn" id="obNext">Continue</button>`;
+  } else {
+    el.innerHTML = `<div class="ob-body"><h1>What should Lucía call you?</h1><p class="lead">She'll use your name in conversations.</p>
+      <input class="text-in" id="obName" placeholder="Your first name" maxlength="24" value="${esc(S.name)}" autocomplete="given-name">
+      <div class="card" style="margin-top:18px"><h3>🎙️ Microphone</h3><p>Charla listens when you tap the mic so it can score your pronunciation. Speech is processed by your browser's speech service. If your browser can't listen, you can type your answers instead.</p></div>
+    </div>${dots}<button class="btn" id="obNext">Start speaking</button>`;
+  }
+  el.querySelectorAll('[data-level]').forEach(b => b.onclick = () => { S.level = b.dataset.level; renderOnboard(); });
+  el.querySelectorAll('[data-goal]').forEach(b => b.onclick = () => { S.goalMin = +b.dataset.goal; renderOnboard(); });
+  el.querySelectorAll('#obAccent button').forEach(b => b.onclick = () => { S.accent = b.dataset.a; renderOnboard(); say('¡Hola! Me llamo Lucía.'); });
+  $('#obNext').onclick = () => {
+    if (st === 3) {
+      S.name = ($('#obName').value || '').trim().slice(0, 24);
+      S.onboarded = true; save(); show('learn'); return;
+    }
+    if (st === 0) say('¡Hola! Soy Lucía. ¡Vamos a hablar español!');
+    OB.step++; renderOnboard();
+  };
+}
+
+/* ---------- Tabs ---------- */
+let tab = 'learn';
+function show(t) {
+  tab = t;
+  $('#onboard').classList.add('hidden'); $('#player').classList.add('hidden'); $('#app').classList.remove('hidden');
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  const body = $('#tabBody');
+  body.innerHTML = `<div class="wrap">${({ learn: learnTab, talk: talkTab, practice: practiceTab, profile: profileTab })[t]()}</div>`;
+  body.scrollTop = 0;
+  bindTab(t);
+}
+document.querySelectorAll('#nav button').forEach(b => b.onclick = () => show(b.dataset.tab));
+
+function goalRing(size = 54) {
+  const frac = Math.min(1, todaySec() / (S.goalMin * 60));
+  const r = 24, c = 2 * Math.PI * r;
+  return `<svg class="ring" viewBox="0 0 54 54" style="width:${size}px;height:${size}px"><circle class="track" cx="27" cy="27" r="${r}"/><circle class="val" cx="27" cy="27" r="${r}" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - frac)}"/>
+    <text x="27" y="31" text-anchor="middle" font-size="12" font-weight="800" fill="currentColor">${frac >= 1 ? '✓' : Math.floor(todaySec() / 60)}</text></svg>`;
+}
+function greeting() { const h = new Date().getHours(); return h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches'; }
+
+function learnTab() {
+  const st = curStreak(); const nx = nextLesson();
+  const min = Math.floor(todaySec() / 60);
+  const done = Object.keys(S.done).length, total = allLessons().length;
+  let hero;
+  if (nx) {
+    hero = `<div class="hero"><span class="emoji">${nx.lesson.icon}</span><small>Unit ${nx.u + 1} · Lesson ${nx.l + 1}</small><h2>${esc(nx.lesson.title)}</h2><p>${esc(nx.lesson.goal)}</p>
+      <div class="row"><button class="btn white" data-start="${nx.u},${nx.l}">${done ? 'Continue' : 'Start'}</button><span style="font-size:.85rem;opacity:.9">~5 min · ${nx.lesson.phrases.length} phrases</span></div></div>`;
+  } else {
+    hero = `<div class="hero"><span class="emoji">🏆</span><small>Course complete</small><h2>¡Felicidades!</h2><p>You finished every lesson. Keep it going with free conversation in the Tutor tab.</p>
+      <div class="row"><button class="btn white" data-goto="talk">Talk with Lucía</button></div></div>`;
+  }
+  const units = COURSE.map((u, ui) => {
+    const n = u.lessons.filter((_, li) => S.done[lid(ui, li)]).length;
+    return `<div class="unit"><div class="unit-head"><div><small>Unit ${ui + 1}</small><h3>${esc(u.title)}</h3></div><span>${n}/${u.lessons.length}</span></div>
+      ${u.lessons.map((l, li) => {
+        const d = S.done[lid(ui, li)], open = unlocked(ui, li), cur = nx && nx.u === ui && nx.l === li;
+        return `<button class="lesson-row ${d ? 'done' : ''} ${cur ? 'current' : ''} ${open ? '' : 'locked'}" ${open ? `data-start="${ui},${li}"` : ''}>
+          <span class="ic">${open ? l.icon : '🔒'}</span><span class="t"><b>${esc(l.title)}</b><span>${esc(l.goal)}</span></span>
+          <span class="st">${d ? `✓ ${d.best}%` : cur ? 'Up next' : ''}</span></button>`;
+      }).join('')}</div>`;
+  }).join('');
+  return `<div class="hello"><div><h1>${greeting()}${S.name ? ', ' + esc(S.name) : ''}</h1><p>${done}/${total} lessons · Spanish</p></div>
+      <span class="pill ${st ? 'fire' : 'off'}"><span class="ico">🔥</span>${st}</span></div>
+    <div class="goal">${goalRing()}<div><h3>Daily goal</h3><p>${min >= S.goalMin ? 'Goal reached today — ¡bien hecho!' : `${min} of ${S.goalMin} minutes spoken today`}</p></div></div>
+    ${hero}${units}`;
+}
+
+function talkTab() {
+  const key = !!S.apiKey;
+  const rps = allLessons().filter(x => unlocked(x.u, x.l));
+  return `<h1 class="section-title">Tutor</h1><p class="section-sub">Practice real conversations. Speak naturally — Lucía will gently correct you.</p>
+    <div class="card"><div class="tutor-card">${avatar('lg')}<div><span class="tag">AI tutor</span><h3>Free talk with Lucía</h3><p>Open-ended conversation on any topic, with corrections and translations.</p></div></div>
+      ${key ? '' : `<p style="margin-bottom:10px">Free talk needs your own Anthropic API key. It stays on this device only.</p><button class="btn quiet" id="addKey">Add API key</button>`}
+    </div>
+    ${key ? `<div class="topics">${TOPICS.map((t, i) => `<button class="topic" data-topic="${i}"><span class="e">${t.e}</span><b>${esc(t.t)}</b><span>${esc(t.s)}</span></button>`).join('')}</div>` : ''}
+    <h3 style="font-size:1.15rem;margin:8px 0 4px">Roleplays</h3><p class="section-sub" style="margin-bottom:12px">Replay any conversation from your lessons.</p>
+    ${rps.map(x => `<button class="lesson-row" data-rp="${x.u},${x.l}"><span class="ic">${x.lesson.rp.icon}</span><span class="t"><b>${esc(x.lesson.rp.scene)}</b><span>${esc(x.lesson.title)}</span></span><span class="st">▶</span></button>`).join('')}`;
+}
+
+function practiceTab() {
+  const list = Object.entries(S.phrases).sort((a, b) => a[1].score - b[1].score);
+  const learned = list.length, avg = learned ? Math.round(list.reduce((s, [, p]) => s + p.score, 0) / learned) : 0;
+  const weak = list.filter(([, p]) => p.score < 85).length;
+  return `<h1 class="section-title">Practice</h1><p class="section-sub">Drill the phrases you've learned. Your weakest ones come up first.</p>
+    <div class="stat-grid"><div class="stat"><b>${learned}</b><span>Phrases</span></div><div class="stat"><b>${learned ? avg + '%' : '–'}</b><span>Avg. score</span></div><div class="stat"><b>${weak}</b><span>To review</span></div></div>
+    ${learned ? `<button class="btn" id="drillBtn">🎙️ Speaking drill · ${Math.min(8, learned)} phrases</button><div style="height:18px"></div>
+      <div class="card">${list.map(([es, p]) => `<div class="phrase-item"><button class="icon-btn" data-say="${esc(es)}">${IC.play}</button><div class="t"><b>${esc(es)}</b><span>${esc(p.en)}</span></div><span class="score-chip ${cls(p.score / 100)}">${p.score}%</span></div>`).join('')}</div>`
+      : `<div class="card" style="text-align:center"><h3>No phrases yet</h3><p>Finish your first lesson and the phrases you learn will show up here.</p><div style="height:12px"></div><button class="btn" data-goto="learn">Go to lessons</button></div>`}`;
+}
+
+function profileTab() {
+  const total = Object.values(S.days).reduce((a, b) => a + b, 0);
+  const d = new Date(); const week = [];
+  for (let i = 6; i >= 0; i--) { const x = new Date(d); x.setDate(d.getDate() - i); week.push(x); }
+  return `<div class="profile-top"><div class="me">${esc((S.name || '🙂').slice(0, 1).toUpperCase())}</div><h2>${esc(S.name || 'Learner')}</h2><p>Learning Spanish ${S.accent === 'es-ES' ? '🇪🇸' : '🇲🇽'}</p></div>
+    <div class="stat-grid"><div class="stat"><b>🔥 ${curStreak()}</b><span>Day streak</span></div><div class="stat"><b>${Math.round(total / 60)}</b><span>Minutes</span></div><div class="stat"><b>${S.spoken}</b><span>Times spoken</span></div></div>
+    <div class="card"><h3>This week</h3><div class="week">${week.map(x => {
+      const s = S.days[dayKey(x)] || 0, h = Math.min(100, s / (S.goalMin * 60) * 100);
+      return `<div class="${dayKey(x) === dayKey() ? 'today' : ''}"><i><em style="height:${h}%"></em></i>${'SMTWTFS'[x.getDay()]}</div>`;
+    }).join('')}</div></div>
+    <div class="card">
+      <div class="setting"><label>Name</label><input class="text-in" id="setName" style="max-width:170px" value="${esc(S.name)}" maxlength="24"></div>
+      <div class="setting"><label>Daily goal</label><div class="seg" id="setGoal">${[5,10,15,20].map(m => `<button data-v="${m}" class="${S.goalMin === m ? 'on' : ''}">${m}m</button>`).join('')}</div></div>
+      <div class="setting"><label>Accent</label><div class="seg" id="setAccent"><button data-v="es-MX" class="${S.accent === 'es-MX' ? 'on' : ''}">🇲🇽</button><button data-v="es-ES" class="${S.accent === 'es-ES' ? 'on' : ''}">🇪🇸</button></div></div>
+      <div class="setting"><label>Tutor speed</label><div class="seg" id="setRate">${[[0.8,'Slow'],[1,'Normal'],[1.15,'Fast']].map(([v, t]) => `<button data-v="${v}" class="${S.rate === v ? 'on' : ''}">${t}</button>`).join('')}</div></div>
+      <div class="setting"><label>Show translations<small>In conversations</small></label><button class="switch ${S.showEn ? 'on' : ''}" id="setEn" aria-label="Show translations"></button></div>
+      <div class="setting"><label>AI tutor key<small>${S.apiKey ? 'Saved on this device' : 'Not set'}</small></label><button class="chip-btn" id="addKey">${S.apiKey ? 'Change' : 'Add'}</button></div>
+    </div>
+    <div class="card"><h3>Voice check</h3><p>${SR ? (micBlocked ? 'Microphone access was blocked. Allow it in your browser settings to speak your answers.' : 'Speech recognition is available in this browser. 🎙️') : 'This browser can\'t listen, so you\'ll type answers. For speaking, use Chrome, Edge or Safari.'}</p>
+      <div style="height:12px"></div><button class="btn quiet" id="testVoice">🔊 Hear Lucía</button></div>
+    <button class="btn link" id="resetBtn">Reset all progress</button>
+    <p style="text-align:center;color:var(--dim);font-size:.75rem;margin-top:8px">Charla v${APP_VERSION}</p>`;
+}
+
+function bindTab(t) {
+  const body = $('#tabBody');
+  body.querySelectorAll('[data-start]').forEach(b => b.onclick = () => { const [u, l] = b.dataset.start.split(',').map(Number); startLesson(u, l); });
+  body.querySelectorAll('[data-goto]').forEach(b => b.onclick = () => show(b.dataset.goto));
+  body.querySelectorAll('[data-rp]').forEach(b => b.onclick = () => { const [u, l] = b.dataset.rp.split(',').map(Number); startRoleplayOnly(u, l); });
+  body.querySelectorAll('[data-topic]').forEach(b => b.onclick = () => startFreeTalk(TOPICS[+b.dataset.topic]));
+  body.querySelectorAll('[data-say]').forEach(b => b.onclick = () => say(b.dataset.say));
+  const ak = $('#addKey'); if (ak) ak.onclick = keySheet;
+  const db = $('#drillBtn'); if (db) db.onclick = startDrill;
+  if (t === 'profile') {
+    $('#setName').onchange = e => { S.name = e.target.value.trim().slice(0, 24); save(); };
+    const seg = (id, fn) => $(id).querySelectorAll('button').forEach(b => b.onclick = () => { fn(b.dataset.v); save(); show('profile'); });
+    seg('#setGoal', v => S.goalMin = +v);
+    seg('#setAccent', v => { S.accent = v; say('¡Hola! ¿Qué tal?'); });
+    seg('#setRate', v => S.rate = +v);
+    $('#setEn').onclick = () => { S.showEn = !S.showEn; save(); show('profile'); };
+    $('#testVoice').onclick = () => say(`¡Hola${S.name ? ' ' + S.name : ''}! Soy Lucía, tu tutora de español.`);
+    $('#resetBtn').onclick = () => {
+      if (!confirm('Reset all lessons, streaks and stats? Your settings stay.')) return;
+      Object.assign(S, { done: {}, phrases: {}, days: {}, streak: 0, lastDay: null, best: 0, spoken: 0 }); save(); show('profile');
+    };
+  }
+}
+
+function keySheet() {
+  const ov = document.createElement('div'); ov.className = 'overlay';
+  ov.innerHTML = `<div class="sheet"><h2>Anthropic API key</h2>
+    <p>Free talk uses Claude to play Lucía. Paste a key from console.anthropic.com. It's saved only in this browser and sent only to Anthropic; usage is billed to your account.</p>
+    <input class="text-in" id="keyIn" type="password" placeholder="sk-ant-..." value="${esc(S.apiKey)}" autocomplete="off">
+    <button class="btn" id="keySave">Save</button>${S.apiKey ? '<button class="btn link" id="keyDel">Remove key</button>' : ''}<button class="btn link" id="keyCancel">Cancel</button></div>`;
+  document.body.appendChild(ov);
+  const close = () => ov.remove();
+  ov.onclick = e => { if (e.target === ov) close(); };
+  $('#keyCancel').onclick = close;
+  $('#keySave').onclick = () => { S.apiKey = $('#keyIn').value.trim(); save(); close(); show(tab); if (S.apiKey) toast('Key saved — pick a topic!'); };
+  const del = $('#keyDel'); if (del) del.onclick = () => { S.apiKey = ''; save(); close(); show(tab); };
+}
+
+/* ---------- Player shell ---------- */
+let P = null; // current session
+function openPlayer() {
+  $('#app').classList.add('hidden'); $('#player').classList.remove('hidden');
+  $('#topRight').innerHTML = ''; $('#pbarWrap').classList.remove('hidden');
+  timerOn = true;
+}
+function closePlayer() {
+  stopListening(); if (window.speechSynthesis) speechSynthesis.cancel();
+  timerOn = false; P = null; save(); show(tab);
+}
+$('#quitBtn').onclick = () => {
+  if (P && P.kind === 'lesson' && P.i > 0 && P.i < P.steps.length) {
+    if (!confirm('Quit this lesson? Your progress in it will be lost.')) return;
+  }
+  closePlayer();
+};
+const body = () => $('#lpBody');
+const dock = () => $('#lpDock');
+function setProgress() { if (P && P.steps) $('#pbar').style.width = `${(P.i / P.steps.length) * 100}%`; }
+
+/* Mic dock: big mic button with replay/slow side buttons, or a text box when typing.
+   opts: { onResult(alts), replay?, slow?, hint?, caption? } */
+function micDock(opts) {
+  const typing = !canSpeak() || P.typing;
+  const d = dock();
+  if (typing) {
+    d.innerHTML = `<div class="dock"><div class="type-row"><input class="text-in" id="typeIn" placeholder="Type in Spanish…" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="send" id="typeGo" aria-label="Send">${IC.send}</button></div>
+      <div class="mic-row" style="margin-top:12px;gap:12px">${opts.replay ? `<button class="chip-btn" id="dkReplay">${IC.play} Listen</button>` : ''}${opts.hint ? `<button class="chip-btn" id="dkHint">${IC.bulb} Hint</button>` : ''}</div>
+      ${canSpeak() ? `<button class="swap" id="dkSwap">🎙️ Speak instead</button>` : ''}</div>`;
+    const go = () => { const v = $('#typeIn').value.trim(); if (v) opts.onResult([v], true); };
+    $('#typeGo').onclick = go;
+    $('#typeIn').onkeydown = e => { if (e.key === 'Enter') go(); };
+    if (!('ontouchstart' in window)) setTimeout(() => $('#typeIn') && $('#typeIn').focus(), 50);
+  } else {
+    d.innerHTML = `<div class="dock"><div class="mic-row">
+        <button class="side-btn" id="dkReplay" ${opts.replay ? '' : 'disabled'} aria-label="Listen">${IC.play}</button>
+        <button class="mic" id="dkMic" aria-label="Speak">${IC.mic}</button>
+        <button class="side-btn" id="${opts.hint ? 'dkHint' : 'dkSlow'}" ${opts.slow || opts.hint ? '' : 'disabled'} aria-label="${opts.hint ? 'Hint' : 'Slow'}">${opts.hint ? IC.bulb : IC.slow}</button>
+      </div><div class="mic-cap" id="dkCap">${opts.caption || 'Tap to speak'}</div>
+      <button class="swap" id="dkSwap">⌨️ Can't speak now? Type instead</button></div>`;
+    const mic = $('#dkMic');
+    mic.onclick = async () => {
+      if (mic.classList.contains('live')) { stopListening(); return; }
+      mic.classList.add('live'); mic.innerHTML = IC.stop; $('#dkCap').textContent = 'Listening…';
+      if (opts.onStart) opts.onStart();
+      try {
+        const alts = await listen(t => { const h = $('#heard'); if (h) h.textContent = t; });
+        mic.classList.remove('live'); mic.innerHTML = IC.mic;
+        if (!alts.length || !alts[0].trim()) { $('#dkCap').textContent = 'Didn\'t hear anything — tap and try again'; return; }
+        opts.onResult(alts, false);
+      } catch (err) {
+        mic.classList.remove('live'); mic.innerHTML = IC.mic;
+        if (micBlocked) { toast('Microphone blocked — switching to typing'); micDock(opts); }
+        else $('#dkCap').textContent = 'Something went wrong — tap to try again';
+      }
+    };
+  }
+  const r = $('#dkReplay'); if (r && opts.replay) r.onclick = () => opts.replay(false);
+  const s = $('#dkSlow'); if (s && opts.slow) s.onclick = () => opts.slow();
+  const h = $('#dkHint'); if (h && opts.hint) h.onclick = () => opts.hint();
+  const sw = $('#dkSwap'); if (sw) sw.onclick = () => { stopListening(); P.typing = !P.typing; micDock(opts); };
+}
+
+function feedbackSheet({ score, title, text, onContinue, onRetry, continueLabel = 'Continue' }) {
+  const [vt, vx] = verdict(score);
+  dock().innerHTML = `<div class="fb"><div class="fb-inner"><div class="head"><div class="score ${cls(score)}">${pct(score)}%</div><div><h3>${esc(title || vt)}</h3><p>${esc(text || vx)}</p></div></div>
+    ${onRetry ? '<button class="btn quiet" id="fbRetry">Try again</button>' : ''}<button class="btn" id="fbGo">${continueLabel}</button></div></div>`;
+  $('#fbGo').onclick = onContinue;
+  if (onRetry) $('#fbRetry').onclick = onRetry;
+}
+
+/* ---------- Lessons ---------- */
+function buildSteps(lesson) {
+  const steps = [{ type: 'intro' }];
+  lesson.phrases.forEach(p => steps.push({ type: 'learn', p }));
+  shuffle(lesson.phrases.slice()).forEach((p, i) => steps.push({ type: i % 2 ? 'listen' : 'say', p }));
+  steps.push({ type: 'chat' });
+  return steps;
+}
+function startLesson(u, l) {
+  const lesson = COURSE[u].lessons[l];
+  P = { kind: 'lesson', u, l, lesson, steps: buildSteps(lesson), i: 0, scores: [], typing: false, start: Date.now() };
+  openPlayer(); runStep();
+}
+function nextStep() { P.i++; if (P.kind === 'drill') runDrill(); else runStep(); }
+function runStep() {
+  setProgress();
+  const step = P.steps[P.i];
+  if (!step) return finishLesson();
+  body().scrollTop = 0;
+  ({ intro: stepIntro, learn: stepLearn, say: stepSay, listen: stepListen, chat: stepChat })[step.type](step);
+}
+
+function stepIntro() {
+  const L = P.lesson;
+  body().innerHTML = `<div style="flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;align-items:center">
+    ${avatar('xl')}<div class="lp-kicker" style="margin-top:20px">Unit ${P.u + 1} · ${esc(COURSE[P.u].title)}</div>
+    <h1 style="font-size:1.9rem;letter-spacing:-0.02em;margin-bottom:10px">${L.icon} ${esc(L.title)}</h1>
+    <p style="color:var(--muted);font-size:1.05rem;line-height:1.45;max-width:360px">In this lesson you'll learn to <b style="color:var(--text)">${esc(L.goal.charAt(0).toLowerCase() + L.goal.slice(1))}</b>. You'll learn ${L.phrases.length} phrases, then use them in a conversation with me.</p></div>`;
+  dock().innerHTML = `<div class="dock"><button class="btn" id="goBtn">Let's go</button></div>`;
+  $('#goBtn').onclick = () => { say('¡Vamos!'); nextStep(); };
+}
+
+function phraseTools() {
+  return `<div class="tools"><button class="chip-btn" data-p="n">${IC.play} Listen</button><button class="chip-btn" data-p="s">${IC.slow} Slow</button></div>`;
+}
+function bindPhraseTools(es) {
+  body().querySelectorAll('[data-p]').forEach(b => b.onclick = () => say(es, b.dataset.p === 's'));
+}
+
+// Speak-a-phrase step shared by "learn" (Spanish shown) and "say" (English shown)
+function speakStep(p, mode) {
+  const [es, en] = p; let tries = 0;
+  const top = mode === 'learn'
+    ? `<div class="lp-kicker">New phrase</div><div class="tutor-line">${avatar()}<div class="bubble">Listen, then say it out loud.</div></div>`
+    : `<div class="lp-kicker">Say it in Spanish</div><div class="tutor-line">${avatar()}<div class="bubble">How would you say this?</div></div>`;
+  const card = (g) => mode === 'learn' || g
+    ? `<div class="phrase-card"><div class="es" id="esLine">${g ? coloredWords(g) : esc(es)}</div><div class="en">${esc(en)}</div>${phraseTools()}</div>`
+    : `<div class="phrase-card"><div class="en big">${esc(en)}</div><div class="tools"><button class="chip-btn" id="peek">${IC.bulb} Show answer</button></div></div><div id="peekBox"></div>`;
+  const draw = g => {
+    body().innerHTML = `${top}${card(g)}<div class="heard" id="heard"></div>`;
+    if (mode === 'learn' || g) bindPhraseTools(es);
+    const pk = $('#peek'); if (pk) pk.onclick = () => { $('#peekBox').innerHTML = `<div class="hint-box"><b>${esc(es)}</b></div>`; say(es); pk.remove(); };
+  };
+  const ask = () => {
+    draw(null);
+    micDock({
+      replay: mode === 'learn' ? () => say(es) : null,
+      slow: mode === 'learn' ? () => say(es, true) : null,
+      caption: mode === 'learn' ? 'Tap and repeat the phrase' : 'Tap and say it in Spanish',
+      onResult: (alts, typed) => {
+        tries++;
+        const g = bestGrade([es], alts);
+        draw(g); $('#heard').textContent = `“${g.heard}”`;
+        P.scores.push(g.score);
+        const pass = g.score >= 0.7;
+        if (pass || tries >= 2) recordPhrase(es, en, pct(g.score));
+        if (pass) say(g.score >= 0.95 ? '¡Perfecto!' : '¡Muy bien!');
+        feedbackSheet({
+          score: g.score,
+          text: !pass && tries >= 2 ? 'Keep practicing — this one will come up again in Practice.' : null,
+          onRetry: pass ? null : () => { P.scores.pop(); ask(); },
+          onContinue: nextStep,
+          continueLabel: pass ? 'Continue' : 'Skip for now',
+        });
+      },
+    });
+  };
+  ask();
+  if (mode === 'learn') say(es);
+}
+const stepLearn = s => speakStep(s.p, 'learn');
+const stepSay = s => speakStep(s.p, 'say');
+
+function stepListen(s) {
+  const [es, en] = s.p;
+  const pool = shuffle(allLessons().flatMap(x => x.lesson.phrases).filter(q => q[1] !== en)).slice(0, 3).map(q => q[1]);
+  const opts = shuffle([en, ...pool]);
+  body().innerHTML = `<div class="lp-kicker">Listen</div><div class="tutor-line">${avatar()}<div class="bubble">What did I just say?</div></div>
+    <div class="phrase-card" style="padding:22px"><div class="tools" style="margin-top:0"><button class="chip-btn" data-p="n" style="padding:14px 20px;font-size:1rem">${IC.play} Play again</button><button class="chip-btn" data-p="s">${IC.slow} Slow</button></div></div>
+    <div class="opts">${opts.map(o => `<button data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  bindPhraseTools(es);
+  dock().innerHTML = '';
+  let first = true;
+  body().querySelectorAll('[data-o]').forEach(b => b.onclick = () => {
+    if (b.dataset.o === en) {
+      b.classList.add('good');
+      body().querySelectorAll('[data-o]').forEach(x => x.disabled = true);
+      P.scores.push(first ? 1 : 0.6);
+      const sc = first ? 1 : 0.6;
+      dock().innerHTML = `<div class="fb"><div class="fb-inner"><div class="head"><div class="score ${cls(sc)}">${first ? '✓' : '~'}</div><div><h3>${first ? '¡Correcto!' : 'Got it'}</h3><p>“${esc(es)}”</p></div></div><button class="btn" id="fbGo">Continue</button></div></div>`;
+      $('#fbGo').onclick = nextStep;
+    } else { b.classList.add('bad'); b.disabled = true; first = false; }
+  });
+  say(es);
+}
+
+/* ---------- Roleplay ---------- */
+function stepChat() { runRoleplay(P.lesson.rp, nextStep); }
+function startRoleplayOnly(u, l) {
+  const lesson = COURSE[u].lessons[l];
+  P = { kind: 'rp', lesson, steps: null, i: 0, scores: [], typing: false };
+  openPlayer(); $('#pbarWrap').classList.add('hidden');
+  runRoleplay(lesson.rp, () => {
+    const avg = P.scores.length ? P.scores.reduce((a, b) => a + b, 0) / P.scores.length : 1;
+    feedbackSheet({ score: avg, title: '¡Conversación completa!', text: 'Nice work keeping the conversation going.', onContinue: closePlayer, continueLabel: 'Done' });
+  });
+}
+function fillName(s) { return s.replace('*', S.name || '___'); }
+
+function runRoleplay(rp, onDone) {
+  body().innerHTML = `<div class="scene"><div class="e">${rp.icon}</div><b>${esc(rp.scene)}</b><span>Roleplay with Lucía</span></div><div class="chat" id="chat"></div>`;
+  dock().innerHTML = '';
+  const chat = $('#chat');
+  const lines = rp.lines; let k = 0;
+  const scrollDown = () => { body().scrollTop = body().scrollHeight; };
+  const tutorMsg = (es, en) => {
+    const m = document.createElement('div'); m.className = 'msg t';
+    m.innerHTML = `${esc(es)}${S.showEn ? `<span class="tr">${esc(en)}</span>` : ''}<div class="acts"><button data-a="play">🔊 Replay</button>${S.showEn ? '' : '<button data-a="tr">Translate</button>'}</div>`;
+    m.querySelector('[data-a="play"]').onclick = () => say(es);
+    const tr = m.querySelector('[data-a="tr"]'); if (tr) tr.onclick = () => { tr.remove(); m.insertAdjacentHTML('beforeend', `<span class="tr">${esc(en)}</span>`); };
+    chat.appendChild(m); scrollDown();
+  };
+  const step = async () => {
+    const line = lines[k];
+    if (!line) { dock().innerHTML = ''; setTimeout(onDone, 700); return; }
+    if (line[0] === 't') {
+      const typing = document.createElement('div'); typing.className = 'typing'; typing.innerHTML = '<i></i><i></i><i></i>';
+      chat.appendChild(typing); scrollDown();
+      await new Promise(r => setTimeout(r, 600));
+      typing.remove(); tutorMsg(line[1], line[2]);
+      k++;
+      const next = lines[k];
+      if (next && next[0] === 'u') { say(line[1]); step(); } else { await say(line[1]); step(); }
+      return;
+    }
+    // learner turn
+    const [, task, answers] = line; let tries = 0;
+    const taskEl = document.createElement('div'); taskEl.className = 'task';
+    taskEl.innerHTML = `<small>Your turn</small><p>${esc(task)}</p><div id="hintSlot"></div>`;
+    chat.appendChild(taskEl); scrollDown();
+    const showHint = () => {
+      const slot = taskEl.querySelector('#hintSlot'); if (!slot || slot.innerHTML) return;
+      const h = fillName(answers[0]);
+      slot.innerHTML = `<div class="hint-box" style="margin:10px 0 0"><b>${esc(h)}</b><span>Try saying this</span></div>`;
+      if (!h.includes('___')) say(h);
+      scrollDown();
+    };
+    const tutorLine = lines[k-1] && lines[k-1][0] === 't' ? lines[k-1][1] : '';
+    const onResult = alts => {
+      tries++;
+      const g = bestGrade(answers, alts);
+      const pass = g.score >= 0.6;
+      if (pass || tries >= 3) {
+        taskEl.remove();
+        const m = document.createElement('div'); m.className = 'msg u'; m.textContent = g.heard || alts[0];
+        chat.appendChild(m);
+        if (!pass) { const f = document.createElement('div'); f.className = 'fix'; f.innerHTML = `<b>You could say</b>${esc(fillName(answers[0]))}`; chat.appendChild(f); }
+        P.scores.push(pass ? g.score : 0.4);
+        S.spoken++;
+        if (pass) say(['¡Muy bien!', '¡Eso es!', '¡Perfecto!'][tries - 1] || '¡Bien!');
+        scrollDown(); dock().innerHTML = '';
+        k++; setTimeout(step, pass ? 900 : 400);
+      } else {
+        const cap = $('#dkCap'), msg = tries >= 2 ? 'Try the hint above' : 'Hmm, not quite — try again';
+        if (cap) cap.textContent = msg; else toast(msg);
+        const h = $('#heard'); if (h) h.textContent = '';
+        if (tries >= 2) showHint();
+      }
+    };
+    micDock({ replay: () => say(tutorLine), hint: showHint, caption: 'Tap to answer', onResult });
+  };
+  step();
+}
+
+/* ---------- Lesson complete ---------- */
+function finishLesson() {
+  const avg = P.scores.length ? P.scores.reduce((a, b) => a + b, 0) / P.scores.length : 1;
+  const score = pct(avg);
+  const id = lid(P.u, P.l); const prev = S.done[id];
+  S.done[id] = { best: Math.max(score, prev ? prev.best : 0), at: Date.now() };
+  const newDay = markStreak(); save();
+  const mins = Math.max(1, Math.round((Date.now() - P.start) / 60000));
+  $('#pbar').style.width = '100%';
+  body().innerHTML = `<div class="done-screen">${avatar('xl')}<h1>¡Lección completa!</h1><p>${esc(P.lesson.title)} · ${esc(COURSE[P.u].title)}</p>
+    <div class="done-stats"><div class="stat"><b>${score}%</b><span>Speaking</span></div><div class="stat"><b>${P.lesson.phrases.length}</b><span>Phrases</span></div><div class="stat"><b>${mins}m</b><span>Time</span></div></div>
+    ${newDay ? `<div class="card" style="width:100%;text-align:center;margin-bottom:0"><h3 style="color:var(--fire)">🔥 ${S.streak} day streak!</h3><p>${S.streak === 1 ? 'Come back tomorrow to keep it going.' : 'You\'re on a roll. See you tomorrow!'}</p></div>` : ''}</div>`;
+  dock().innerHTML = `<div class="dock"><button class="btn" id="doneBtn">Continue</button></div>`;
+  $('#doneBtn').onclick = closePlayer;
+  say('¡Muy bien! ¡Lección completa!');
+  confetti();
+}
+function confetti() {
+  const c = document.createElement('div'); c.className = 'confetti';
+  const colors = ['#7c5cff', '#00b8ff', '#2fd98b', '#ffc145', '#ff5d6c'];
+  for (let i = 0; i < 60; i++) {
+    const p = document.createElement('i');
+    p.style.left = Math.random() * 100 + '%'; p.style.background = colors[i % colors.length];
+    p.style.animationDuration = (1.8 + Math.random() * 1.6) + 's'; p.style.animationDelay = Math.random() * .5 + 's';
+    c.appendChild(p);
+  }
+  document.body.appendChild(c); setTimeout(() => c.remove(), 4200);
+}
+
+/* ---------- Speaking drill (Practice tab) ---------- */
+function startDrill() {
+  const list = Object.entries(S.phrases).sort((a, b) => a[1].score - b[1].score || a[1].last - b[1].last).slice(0, 8);
+  P = { kind: 'drill', steps: shuffle(list.map(([es, p]) => ({ type: 'learn', p: [es, p.en] }))), i: 0, scores: [], typing: false, start: Date.now() };
+  openPlayer(); runDrill();
+}
+function runDrill() {
+  setProgress();
+  const step = P.steps[P.i];
+  if (!step) {
+    save();
+    const avg = P.scores.length ? P.scores.reduce((a, b) => a + b, 0) / P.scores.length : 1;
+    body().innerHTML = `<div class="done-screen">${avatar('xl')}<h1>Drill complete</h1><p>Your average this round</p><div class="done-stats" style="grid-template-columns:1fr"><div class="stat"><b>${pct(avg)}%</b><span>Speaking score</span></div></div></div>`;
+    dock().innerHTML = `<div class="dock"><button class="btn" id="doneBtn">Done</button></div>`;
+    $('#doneBtn').onclick = closePlayer; return;
+  }
+  speakStep(step.p, 'learn');
+}
+
+/* ---------- Free talk with the AI tutor ---------- */
+let sdkPromise = null;
+function loadSDK() { return sdkPromise || (sdkPromise = import(SDK_URL).catch(e => { sdkPromise = null; throw e; })); }
+const LEVELS = { new: 'a complete beginner (A1): use very short, simple sentences and common words', some: 'an advanced beginner (A2): use simple sentences in present and near future', conv: 'an intermediate learner (B1): speak naturally but clearly' };
+const REPLY_SCHEMA = {
+  type: 'object',
+  properties: {
+    reply: { type: 'string', description: 'Lucía\'s reply in Spanish' },
+    translation: { type: 'string', description: 'English translation of reply' },
+    correction: { anyOf: [{ type: 'string' }, { type: 'null' }], description: 'A corrected, natural Spanish version of the learner\'s last message, or null if it was fine' },
+    tip: { anyOf: [{ type: 'string' }, { type: 'null' }], description: 'One short English sentence explaining the correction, or null' },
+  },
+  required: ['reply', 'translation', 'correction', 'tip'],
+  additionalProperties: false,
+};
+
+function startFreeTalk(topic) {
+  P = { kind: 'talk', topic, msgs: [], typing: false, busy: false, turns: 0 };
+  openPlayer(); $('#pbarWrap').classList.add('hidden');
+  $('#topRight').innerHTML = '';
+  body().innerHTML = `<div class="scene"><div class="e">${topic.e}</div><b>${esc(topic.t)}</b><span>Free talk with Lucía</span></div><div class="chat" id="chat"></div>`;
+  tutorTurn('(Begin the conversation now: greet me' + (S.name ? ` by name (${S.name})` : '') + ' and ask an easy opening question about the topic. No correction needed.)');
+}
+
+function talkSystem(topic) {
+  return `You are Lucía, a warm, upbeat Spanish tutor from Mexico City, having a spoken conversation with a learner who is ${LEVELS[S.level] || LEVELS.new}.
+Conversation topic: ${topic.t === 'Surprise me' ? 'pick a fun everyday topic yourself' : topic.t + ' — ' + topic.s}.
+${S.accent === 'es-ES' ? 'Use Spain Spanish (vosotros, Spain vocabulary).' : 'Use Latin American Spanish.'}
+The learner's messages come from speech recognition, so ignore punctuation, capitalization and missing accents, and read through small transcription glitches.
+Keep the conversation going: reply in 1-2 short Spanish sentences and usually end with a question. Stay in character; never switch to English in "reply".
+If the learner's last message has a real grammar or vocabulary mistake, put a corrected natural version of their sentence in "correction" and a one-sentence English explanation in "tip". If they wrote English or mixed languages, put the Spanish way to say it in "correction". If their Spanish was fine, both are null.`;
+}
+
+async function tutorTurn(userText, shown) {
+  const chat = $('#chat');
+  if (shown) { const m = document.createElement('div'); m.className = 'msg u'; m.textContent = shown; chat.appendChild(m); }
+  P.msgs.push({ role: 'user', content: userText });
+  const typing = document.createElement('div'); typing.className = 'typing'; typing.innerHTML = '<i></i><i></i><i></i>';
+  chat.appendChild(typing); body().scrollTop = body().scrollHeight;
+  P.busy = true; talkDock();
+  const session = P;
+  try {
+    const { default: Anthropic } = await loadSDK();
+    const client = new Anthropic({ apiKey: S.apiKey, dangerouslyAllowBrowser: true });
+    const res = await client.beta.messages.create({
+      model: TUTOR_MODEL,
+      max_tokens: 2000,
+      betas: ['server-side-fallback-2026-07-01'],
+      fallbacks: 'default',
+      output_config: { effort: 'low', format: { type: 'json_schema', schema: REPLY_SCHEMA } },
+      system: talkSystem(session.topic),
+      messages: session.msgs,
+    });
+    if (P !== session) return;
+    typing.remove();
+    if (res.stop_reason === 'refusal') throw new Error('Lucía couldn\'t answer that one. Try saying something else.');
+    session.msgs.push({ role: 'assistant', content: res.content });
+    const txt = res.content.filter(b => b.type === 'text').map(b => b.text).join('');
+    let out; try { out = JSON.parse(txt); } catch { out = { reply: txt, translation: '', correction: null, tip: null }; }
+    if (out.correction && shown) {
+      const f = document.createElement('div'); f.className = 'fix';
+      f.innerHTML = `<b>Better</b>${esc(out.correction)}${out.tip ? `<span>${esc(out.tip)}</span>` : ''}`;
+      chat.appendChild(f);
+    }
+    const m = document.createElement('div'); m.className = 'msg t';
+    m.innerHTML = `${esc(out.reply)}${S.showEn && out.translation ? `<span class="tr">${esc(out.translation)}</span>` : ''}<div class="acts"><button data-a="play">🔊 Replay</button>${!S.showEn && out.translation ? '<button data-a="tr">Translate</button>' : ''}</div>`;
+    m.querySelector('[data-a="play"]').onclick = () => say(out.reply);
+    const tr = m.querySelector('[data-a="tr"]'); if (tr) tr.onclick = () => { tr.remove(); m.insertAdjacentHTML('beforeend', `<span class="tr">${esc(out.translation)}</span>`); };
+    chat.appendChild(m); body().scrollTop = body().scrollHeight;
+    session.busy = false; session.turns++;
+    if (session.turns > 1) markStreakOnce();
+    talkDock();
+    say(out.reply);
+  } catch (e) {
+    if (P !== session) return;
+    typing.remove();
+    session.msgs.pop(); // drop the unanswered message so the history stays valid
+    let msg = e && e.message ? e.message : String(e);
+    if (e && e.status === 401) msg = 'That API key didn\'t work. Check it in Profile → AI tutor key.';
+    else if (e && e.status === 429) msg = 'Too many requests right now — wait a moment and try again.';
+    else if (/import|fetch|network/i.test(msg)) msg = 'Couldn\'t reach the tutor. Check your connection and try again.';
+    const f = document.createElement('div'); f.className = 'fix'; f.style.alignSelf = 'stretch';
+    f.innerHTML = `<b>Connection problem</b>${esc(msg)}`; chat.appendChild(f);
+    session.busy = false; talkDock();
+  }
+}
+function markStreakOnce() { if (markStreak()) { save(); toast(`🔥 ${S.streak} day streak!`); } }
+
+function talkDock() {
+  if (P.busy) { dock().innerHTML = `<div class="dock"><div class="mic-cap">Lucía is thinking…</div></div>`; return; }
+  micDock({
+    replay: () => { const last = [...P.msgs].reverse().find(m => m.role === 'assistant'); if (last) { try { const t = last.content.filter(b => b.type === 'text').map(b => b.text).join(''); say(JSON.parse(t).reply); } catch {} } },
+    caption: 'Tap to reply in Spanish',
+    onResult: (alts) => { S.spoken++; tutorTurn(alts[0], alts[0]); },
+  });
+}
+
+/* ---------- Boot ---------- */
+if (S.onboarded) show('learn'); else renderOnboard();
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
