@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Charla">
   <meta name="theme-color" content="#0b0a14">
   <meta name="color-scheme" content="dark">
-  <meta name="description" content="Speak Spanish out loud from day one with a friendly AI tutor">
+  <meta name="description" content="Speak Spanish out loud from day one with a friendly tutor">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>Charla</title>
@@ -328,9 +328,7 @@
 <script>
 'use strict';
 
-const APP_VERSION = 1;
-const SDK_URL = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.131.0/+esm';
-const TUTOR_MODEL = 'claude-opus-5-5';
+const APP_VERSION = 2;
 
 /* ---------- Icons ---------- */
 const IC = {
@@ -601,21 +599,84 @@ const COURSE = [
 ];
 
 const TOPICS = [
-  { e: '☕', t: 'Ordering at a café', s: 'Lucía is your barista' },
-  { e: '👋', t: 'Getting to know you', s: 'Small talk about you' },
-  { e: '🏖️', t: 'Your weekend', s: 'What you did and will do' },
-  { e: '✈️', t: 'Planning a trip', s: 'Where should you go?' },
-  { e: '🍳', t: 'Food & cooking', s: 'Favorite dishes and recipes' },
-  { e: '💼', t: 'Job interview', s: 'Practice for a real one' },
-  { e: '🎵', t: 'Music & movies', s: 'What you love and why' },
-  { e: '🎲', t: 'Surprise me', s: 'Lucía picks the topic' },
+  { e: '👋', t: 'Getting to know you', s: 'Small talk about you', q: [
+    ['¿Cómo te llamas?', 'What\'s your name?', 'Me llamo *.', ['Yo me llamo Lucía.', 'My name is Lucía.']],
+    ['¿De dónde eres?', 'Where are you from?', 'Soy de Estados Unidos.', ['Yo soy de la Ciudad de México.', 'I\'m from Mexico City.']],
+    ['¿Dónde vives ahora?', 'Where do you live now?', 'Vivo en Chicago.', ['Ahora vivo en Guadalajara.', 'Now I live in Guadalajara.']],
+    ['¿A qué te dedicas?', 'What do you do?', 'Soy estudiante.', ['Soy profesora de español.', 'I\'m a Spanish teacher.']],
+    ['¿Por qué aprendes español?', 'Why are you learning Spanish?', 'Porque quiero viajar.', ['Yo aprendo inglés porque me gusta la música.', 'I\'m learning English because I like music.']],
+    ['¿Qué te gusta hacer en tu tiempo libre?', 'What do you like to do in your free time?', 'Me gusta tocar música.', ['Me gusta bailar y cocinar.', 'I like dancing and cooking.']],
+    ['¿Tienes hermanos?', 'Do you have siblings?', 'Sí, tengo dos hermanos.', ['Tengo una hermana menor.', 'I have a younger sister.']],
+    ['¿Cuál es tu comida favorita?', 'What\'s your favorite food?', 'Mi comida favorita es la pizza.', ['Mi comida favorita son los tacos al pastor.', 'My favorite food is tacos al pastor.']],
+  ] },
+  { e: '☕', t: 'Ordering at a café', s: 'Lucía is your barista', formal: true, q: [
+    ['¡Hola! Bienvenido al café. ¿Qué quieres tomar?', 'Hi! Welcome to the café. What would you like to drink?', 'Quiero un café con leche, por favor.'],
+    ['¿Grande o pequeño?', 'Large or small?', 'Grande, por favor.'],
+    ['¿Quieres algo de comer? Tenemos croissants y pan dulce.', 'Want something to eat? We have croissants and sweet bread.', 'Sí, un croissant, por favor.'],
+    ['¿Es para tomar aquí o para llevar?', 'Is it for here or to go?', 'Para llevar.'],
+    ['¿Vienes mucho a este café?', 'Do you come to this café often?', 'Sí, vengo todos los días.', ['Yo trabajo aquí todos los días.', 'I work here every day.']],
+    ['¿Te gusta el café fuerte?', 'Do you like strong coffee?', 'Sí, me gusta el café fuerte.', ['A mí me gusta con mucha leche.', 'I like it with lots of milk.']],
+    ['Son cuatro dólares. ¿Pagas con tarjeta o en efectivo?', 'That\'s four dollars. Card or cash?', 'Con tarjeta, por favor.'],
+    ['¡Aquí tienes! ¿Algo más?', 'Here you go! Anything else?', 'No, nada más. ¡Gracias!'],
+  ] },
+  { e: '🏖️', t: 'Your weekend', s: 'What you did and will do', q: [
+    ['¿Qué hiciste el fin de semana pasado?', 'What did you do last weekend?', 'Fui al cine con mis amigos.', ['Yo fui a un concierto.', 'I went to a concert.']],
+    ['¿Con quién estuviste?', 'Who were you with?', 'Estuve con mi familia.', ['Yo estuve con mi hermana.', 'I was with my sister.']],
+    ['¿Lo pasaste bien?', 'Did you have a good time?', 'Sí, lo pasé muy bien.', ['¡Yo lo pasé genial!', 'I had a great time!']],
+    ['¿Qué comiste?', 'What did you eat?', 'Comí pizza.', ['Yo comí enchiladas.', 'I ate enchiladas.']],
+    ['¿Y qué vas a hacer este fin de semana?', 'And what are you going to do this weekend?', 'Voy a descansar.', ['Voy a ir a la playa.', 'I\'m going to go to the beach.']],
+    ['¿Prefieres salir o quedarte en casa?', 'Do you prefer going out or staying home?', 'Prefiero quedarme en casa.', ['Yo prefiero salir.', 'I prefer going out.']],
+    ['¿Te levantas tarde los domingos?', 'Do you get up late on Sundays?', 'Sí, me levanto a las diez.', ['Yo me levanto tardísimo.', 'I get up super late.']],
+    ['¿Cuál es tu día favorito de la semana?', 'What\'s your favorite day of the week?', 'Mi día favorito es el sábado.', ['El mío es el viernes.', 'Mine is Friday.']],
+  ] },
+  { e: '✈️', t: 'Planning a trip', s: 'Where should you go?', q: [
+    ['¿Te gusta viajar?', 'Do you like to travel?', 'Sí, me encanta viajar.', ['A mí me encanta.', 'I love it.']],
+    ['¿A dónde quieres ir?', 'Where do you want to go?', 'Quiero ir a México.', ['Yo quiero ir a Japón.', 'I want to go to Japan.']],
+    ['¿Por qué quieres ir allí?', 'Why do you want to go there?', 'Porque quiero conocer la cultura.', ['Me fascina la comida de allí.', 'I\'m fascinated by the food there.']],
+    ['¿Cuándo quieres ir?', 'When do you want to go?', 'Quiero ir en verano.', ['Yo quiero ir en primavera.', 'I want to go in spring.']],
+    ['¿Prefieres la playa o la montaña?', 'Do you prefer the beach or the mountains?', 'Prefiero la playa.', ['Yo prefiero la montaña.', 'I prefer the mountains.']],
+    ['¿Con quién vas a viajar?', 'Who are you going to travel with?', 'Voy a viajar con mis amigos.', ['Yo siempre viajo con mi hermana.', 'I always travel with my sister.']],
+    ['¿Qué quieres hacer allí?', 'What do you want to do there?', 'Quiero comer y visitar museos.', ['Yo quiero probar toda la comida.', 'I want to try all the food.']],
+    ['¿Cuál fue el mejor viaje de tu vida?', 'What was the best trip of your life?', 'Mi mejor viaje fue a Nueva York.', ['El mío fue a Oaxaca.', 'Mine was to Oaxaca.']],
+  ] },
+  { e: '🍳', t: 'Food & cooking', s: 'Favorite dishes and recipes', q: [
+    ['¿Te gusta cocinar?', 'Do you like to cook?', 'Sí, me gusta cocinar.', ['¡Me encanta cocinar!', 'I love cooking!']],
+    ['¿Cuál es tu comida favorita?', 'What\'s your favorite food?', 'Me encanta la pasta.', ['Los tacos, ¡claro!', 'Tacos, of course!']],
+    ['¿Qué desayunaste hoy?', 'What did you have for breakfast today?', 'Desayuné huevos y café.', ['Yo desayuné fruta y pan.', 'I had fruit and bread.']],
+    ['¿Te gusta la comida picante?', 'Do you like spicy food?', 'Sí, me gusta mucho.', ['A mí me encanta el picante.', 'I love spicy food.']],
+    ['¿Sabes cocinar algún plato especial?', 'Can you cook any special dish?', 'Sé cocinar arroz con pollo.', ['Yo sé hacer un mole muy rico.', 'I can make a really tasty mole.']],
+    ['¿Comes en restaurantes a menudo?', 'Do you eat at restaurants often?', 'No, casi siempre como en casa.', ['Yo como fuera los viernes.', 'I eat out on Fridays.']],
+    ['¿Hay alguna comida que no te gusta?', 'Is there any food you don\'t like?', 'No me gusta el pescado.', ['No me gustan las aceitunas.', 'I don\'t like olives.']],
+    ['¿Qué vas a cenar esta noche?', 'What are you going to have for dinner tonight?', 'Voy a cenar pollo.', ['Yo voy a cenar sopa.', 'I\'m going to have soup.']],
+  ] },
+  { e: '💼', t: 'Job interview', s: 'Practice for a real one', formal: true, q: [
+    ['Buenos días. Gracias por venir. ¿Cómo está usted?', 'Good morning. Thanks for coming. How are you?', 'Muy bien, gracias. ¿Y usted?', ['Muy bien, gracias.', 'Very well, thank you.']],
+    ['Hábleme un poco de usted.', 'Tell me a little about yourself.', 'Soy estudiante y me gusta la tecnología.'],
+    ['¿Dónde trabaja ahora?', 'Where do you work now?', 'Trabajo en una tienda.'],
+    ['¿Por qué quiere trabajar con nosotros?', 'Why do you want to work with us?', 'Porque me gusta mucho su empresa.'],
+    ['¿Cuáles son sus puntos fuertes?', 'What are your strengths?', 'Soy responsable y trabajo bien en equipo.'],
+    ['¿Habla otros idiomas?', 'Do you speak other languages?', 'Hablo inglés y un poco de español.'],
+    ['¿Cuándo puede empezar?', 'When can you start?', 'Puedo empezar el lunes.'],
+    ['¿Tiene alguna pregunta para mí?', 'Do you have any questions for me?', '¿Cuál es el horario de trabajo?', ['El horario es de nueve a cinco.', 'The hours are nine to five.']],
+  ] },
+  { e: '🎵', t: 'Music & movies', s: 'What you love and why', q: [
+    ['¿Qué tipo de música te gusta?', 'What kind of music do you like?', 'Me gusta el rock.', ['A mí me gustan el reguetón y la salsa.', 'I like reggaeton and salsa.']],
+    ['¿Quién es tu artista favorito?', 'Who is your favorite artist?', 'Mi artista favorito es Bad Bunny.', ['Me encanta Natalia Lafourcade.', 'I love Natalia Lafourcade.']],
+    ['¿Tocas algún instrumento?', 'Do you play an instrument?', 'Sí, toco la guitarra.', ['Yo toco un poco el piano.', 'I play a little piano.']],
+    ['¿Vas a conciertos?', 'Do you go to concerts?', 'Sí, voy a conciertos a veces.', ['Yo voy a muchos conciertos.', 'I go to lots of concerts.']],
+    ['¿Te gusta ir al cine?', 'Do you like going to the movies?', 'Sí, me gusta mucho.', ['Me encanta, sobre todo con palomitas.', 'I love it, especially with popcorn.']],
+    ['¿Cuál es tu película favorita?', 'What\'s your favorite movie?', 'Mi película favorita es Coco.', ['La mía es Roma.', 'Mine is Roma.']],
+    ['¿Prefieres ver películas o series?', 'Do you prefer movies or series?', 'Prefiero las series.', ['Yo prefiero las películas.', 'I prefer movies.']],
+    ['¿Qué estás viendo ahora?', 'What are you watching now?', 'Estoy viendo una serie de comedia.', ['Yo estoy viendo una serie de misterio.', 'I\'m watching a mystery series.']],
+  ] },
+  { e: '🎲', t: 'Surprise me', s: 'Lucía picks the topic', random: true, q: [] },
 ];
 
 /* ---------- State ---------- */
 const KEY = 'charla-v1';
 const DEFAULT = {
   onboarded: false, name: '', level: 'new', goalMin: 10,
-  accent: 'es-MX', rate: 1, showEn: true, apiKey: '',
+  accent: 'es-MX', rate: 1, showEn: true,
   done: {},       // 'u-l' -> { best, at }
   phrases: {},    // spanish -> { en, score, tries, last }
   days: {},       // 'YYYY-MM-DD' -> seconds practiced
@@ -625,6 +686,7 @@ const DEFAULT = {
 let S;
 try { S = Object.assign({}, DEFAULT, JSON.parse(localStorage.getItem(KEY) || '{}')); }
 catch { S = Object.assign({}, DEFAULT); }
+delete S.apiKey; // free talk used to need an API key; it no longer does
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
 
 const $ = s => document.querySelector(s);
@@ -901,13 +963,10 @@ function learnTab() {
 }
 
 function talkTab() {
-  const key = !!S.apiKey;
   const rps = allLessons().filter(x => unlocked(x.u, x.l));
   return `<h1 class="section-title">Tutor</h1><p class="section-sub">Practice real conversations. Speak naturally — Lucía will gently correct you.</p>
-    <div class="card"><div class="tutor-card">${avatar('lg')}<div><span class="tag">AI tutor</span><h3>Free talk with Lucía</h3><p>Open-ended conversation on any topic, with corrections and translations.</p></div></div>
-      ${key ? '' : `<p style="margin-bottom:10px">Free talk needs your own Anthropic API key. It stays on this device only.</p><button class="btn quiet" id="addKey">Add API key</button>`}
-    </div>
-    ${key ? `<div class="topics">${TOPICS.map((t, i) => `<button class="topic" data-topic="${i}"><span class="e">${t.e}</span><b>${esc(t.t)}</b><span>${esc(t.s)}</span></button>`).join('')}</div>` : ''}
+    <div class="card"><div class="tutor-card">${avatar('lg')}<div><span class="tag">Free</span><h3>Free talk with Lucía</h3><p>Answer her questions in your own words. She reacts, answers when you ask her back, and corrects common mistakes.</p></div></div></div>
+    <div class="topics">${TOPICS.map((t, i) => `<button class="topic" data-topic="${i}"><span class="e">${t.e}</span><b>${esc(t.t)}</b><span>${esc(t.s)}</span></button>`).join('')}</div>
     <h3 style="font-size:1.15rem;margin:8px 0 4px">Roleplays</h3><p class="section-sub" style="margin-bottom:12px">Replay any conversation from your lessons.</p>
     ${rps.map(x => `<button class="lesson-row" data-rp="${x.u},${x.l}"><span class="ic">${x.lesson.rp.icon}</span><span class="t"><b>${esc(x.lesson.rp.scene)}</b><span>${esc(x.lesson.title)}</span></span><span class="st">▶</span></button>`).join('')}`;
 }
@@ -939,7 +998,6 @@ function profileTab() {
       <div class="setting"><label>Accent</label><div class="seg" id="setAccent"><button data-v="es-MX" class="${S.accent === 'es-MX' ? 'on' : ''}">🇲🇽</button><button data-v="es-ES" class="${S.accent === 'es-ES' ? 'on' : ''}">🇪🇸</button></div></div>
       <div class="setting"><label>Tutor speed</label><div class="seg" id="setRate">${[[0.8,'Slow'],[1,'Normal'],[1.15,'Fast']].map(([v, t]) => `<button data-v="${v}" class="${S.rate === v ? 'on' : ''}">${t}</button>`).join('')}</div></div>
       <div class="setting"><label>Show translations<small>In conversations</small></label><button class="switch ${S.showEn ? 'on' : ''}" id="setEn" aria-label="Show translations"></button></div>
-      <div class="setting"><label>AI tutor key<small>${S.apiKey ? 'Saved on this device' : 'Not set'}</small></label><button class="chip-btn" id="addKey">${S.apiKey ? 'Change' : 'Add'}</button></div>
     </div>
     <div class="card"><h3>Voice check</h3><p>${SR ? (micBlocked ? 'Microphone access was blocked. Allow it in your browser settings to speak your answers.' : 'Speech recognition is available in this browser. 🎙️') : 'This browser can\'t listen, so you\'ll type answers. For speaking, use Chrome, Edge or Safari.'}</p>
       <div style="height:12px"></div><button class="btn quiet" id="testVoice">🔊 Hear Lucía</button></div>
@@ -954,7 +1012,6 @@ function bindTab(t) {
   body.querySelectorAll('[data-rp]').forEach(b => b.onclick = () => { const [u, l] = b.dataset.rp.split(',').map(Number); startRoleplayOnly(u, l); });
   body.querySelectorAll('[data-topic]').forEach(b => b.onclick = () => startFreeTalk(TOPICS[+b.dataset.topic]));
   body.querySelectorAll('[data-say]').forEach(b => b.onclick = () => say(b.dataset.say));
-  const ak = $('#addKey'); if (ak) ak.onclick = keySheet;
   const db = $('#drillBtn'); if (db) db.onclick = startDrill;
   if (t === 'profile') {
     $('#setName').onchange = e => { S.name = e.target.value.trim().slice(0, 24); save(); };
@@ -969,20 +1026,6 @@ function bindTab(t) {
       Object.assign(S, { done: {}, phrases: {}, days: {}, streak: 0, lastDay: null, best: 0, spoken: 0 }); save(); show('profile');
     };
   }
-}
-
-function keySheet() {
-  const ov = document.createElement('div'); ov.className = 'overlay';
-  ov.innerHTML = `<div class="sheet"><h2>Anthropic API key</h2>
-    <p>Free talk uses Claude to play Lucía. Paste a key from console.anthropic.com. It's saved only in this browser and sent only to Anthropic; usage is billed to your account.</p>
-    <input class="text-in" id="keyIn" type="password" placeholder="sk-ant-..." value="${esc(S.apiKey)}" autocomplete="off">
-    <button class="btn" id="keySave">Save</button>${S.apiKey ? '<button class="btn link" id="keyDel">Remove key</button>' : ''}<button class="btn link" id="keyCancel">Cancel</button></div>`;
-  document.body.appendChild(ov);
-  const close = () => ov.remove();
-  ov.onclick = e => { if (e.target === ov) close(); };
-  $('#keyCancel').onclick = close;
-  $('#keySave').onclick = () => { S.apiKey = $('#keyIn').value.trim(); save(); close(); show(tab); if (S.apiKey) toast('Key saved — pick a topic!'); };
-  const del = $('#keyDel'); if (del) del.onclick = () => { S.apiKey = ''; save(); close(); show(tab); };
 }
 
 /* ---------- Player shell ---------- */
@@ -1289,101 +1332,162 @@ function runDrill() {
   speakStep(step.p, 'learn');
 }
 
-/* ---------- Free talk with the AI tutor ---------- */
-let sdkPromise = null;
-function loadSDK() { return sdkPromise || (sdkPromise = import(SDK_URL).catch(e => { sdkPromise = null; throw e; })); }
-const LEVELS = { new: 'a complete beginner (A1): use very short, simple sentences and common words', some: 'an advanced beginner (A2): use simple sentences in present and near future', conv: 'an intermediate learner (B1): speak naturally but clearly' };
-const REPLY_SCHEMA = {
-  type: 'object',
-  properties: {
-    reply: { type: 'string', description: 'Lucía\'s reply in Spanish' },
-    translation: { type: 'string', description: 'English translation of reply' },
-    correction: { anyOf: [{ type: 'string' }, { type: 'null' }], description: 'A corrected, natural Spanish version of the learner\'s last message, or null if it was fine' },
-    tip: { anyOf: [{ type: 'string' }, { type: 'null' }], description: 'One short English sentence explaining the correction, or null' },
-  },
-  required: ['reply', 'translation', 'correction', 'tip'],
-  additionalProperties: false,
-};
+/* ---------- Free talk with Lucía ----------
+   Runs entirely on the device: Lucía asks questions on a topic, reacts to what
+   you say, answers when you ask her back, and corrects common learner mistakes.
+   q: [spanish question, english, example answer, Lucía's own answer?] */
+function talkReply(text) {
+  const P0 = P, topic = P0.topic, qs = topic.q;
+  const n = norm(text), words = n.split(' ').filter(Boolean);
+  const parts = [];
+  const cur = qs[P0.qi];
+
+  // Mostly English? Ask again in Spanish with an example
+  const eng = words.filter(w => ENGLISH.has(w)).length;
+  if (words.length && eng >= 2 && eng / words.length >= 0.4) {
+    return { retry: true, fix: { text: fillName(cur[2]), label: 'Try saying' }, parts: [['¡En español, por favor! 😊', 'In Spanish, please! 😊'], [cur[0], cur[1]]] };
+  }
+
+  const fix = checkGrammar(text);
+  const asked = /[¿?]/.test(text) || /(^| )y (tu|usted)$/.test(n) || /^(que|como|donde|cual|cuando|por que|quien|cuanto)( |$)/.test(n);
+  if (asked) {
+    parts.push(cur[3] ? [cur[3][0], cur[3][1]] : ['¡Buena pregunta!', 'Good question!']);
+  } else if (/(^| )no me (gusta|gustan|encanta)/.test(n)) {
+    parts.push(pick([['¿De verdad? ¡Qué interesante!', 'Really? Interesting!'], ['Ah, ¿no? Entiendo.', 'Oh, no? I understand.']]));
+  } else if (/(^| )me (gusta|gustan|encanta|encantan)( |$)/.test(n)) {
+    parts.push(pick([['¡A mí también!', 'Me too!'], ['¡Qué bien! A mí también me gusta.', 'Nice! I like it too.'], ['¡Excelente gusto!', 'Great taste!']]));
+  } else if (/^no( |$)/.test(n) && !topic.formal) {
+    parts.push(pick([['Ah, entiendo.', 'Ah, I see.'], ['¿No? Bueno, ¡no pasa nada!', 'No? Well, no problem!']]));
+  } else if (/^si( |$)/.test(n) && !topic.formal) {
+    parts.push(pick([['¡Qué bien!', 'How nice!'], ['¡Genial!', 'Great!']]));
+  } else {
+    parts.push(pick(topic.formal ? ACK_FORMAL : ACK.concat([[S.accent === 'es-ES' ? '¡Qué guay!' : '¡Qué padre!', 'How cool!']])));
+  }
+  if (!asked && cur[3] && Math.random() < 0.5) parts.push(cur[3]);
+
+  P0.qi++;
+  const next = qs[P0.qi];
+  if (next) parts.push([next[0], next[1]]);
+  else parts.push(['¡Me encantó hablar contigo! Tu español está mejorando mucho.', 'I loved talking with you! Your Spanish is really improving.']);
+  return { fix, parts, end: !next };
+}
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const ACK = [['¡Qué interesante!', 'How interesting!'], ['¡Genial!', 'Great!'], ['Ah, ¡qué bueno!', 'Oh, that\'s good!'], ['¡Me encanta!', 'I love it!'], ['Ya veo.', 'I see.']];
+const ACK_FORMAL = [['¡Perfecto!', 'Perfect!'], ['Muy bien.', 'Very good.'], ['Claro.', 'Of course.'], ['De acuerdo.', 'Okay.']];
+const ENGLISH = new Set('the i my is and you to it like yes what how dont want have am are from live name with this that of in we they he she was be do go my your please thanks thank hello hi okay'.split(' '));
+
+/* Common learner mistakes: [pattern, replacement, tip]. Matches whole words, accents optional */
+const GRAMMAR = [
+  ['yo fue', 'yo fui', '"Fui" means "I went / I was" — "fue" is for he or she.'],
+  ['yo (?:es|eres)', 'yo soy', 'With "yo", use "soy" (I am).'],
+  ['yo est[aá]', 'yo estoy', 'With "yo", use "estoy" (I am).'],
+  ['yo tiene', 'yo tengo', '"Tengo" means "I have".'],
+  ['yo va', 'yo voy', '"Voy" means "I go".'],
+  ['yo hace', 'yo hago', '"Hago" means "I do / I make".'],
+  ['yo sabe', 'yo sé', '"Sé" means "I know".'],
+  ['yo (quier|pued|prefier|com|viv|trabaj|habl|toc|cocin|escuch|necesit|estudi|viaj)e', 'yo $1o', 'With "yo", present-tense verbs end in -o.'],
+  ['yo trabaja', 'yo trabajo', 'With "yo", present-tense verbs end in -o.'],
+  ['yo (?:me )?gust[ao]', 'me gusta', 'Say "me gusta" (it pleases me) — no "yo" needed.'],
+  ['me gusta (los|las)', 'me gustan $1', 'Use "gustan" when what you like is plural.'],
+  ['me encanta (los|las)', 'me encantan $1', 'Use "encantan" when what you love is plural.'],
+  ['(?:soy|estoy) (\\p{L}+|\\d+) años', 'tengo $1 años', 'Age uses "tener": "tengo 25 años".'],
+  ['estoy de', 'soy de', 'Where you\'re from uses "ser": "soy de…".'],
+  ['(?:soy|estoy) (hambre|sed|sueño|frío|frio|calor|miedo)', 'tengo $1', 'Spanish says "tengo hambre" — literally "I have hunger".'],
+  ['(?:es|est[aá]) (muy |mucho )?(calor|fr[ií]o)', 'hace $1$2', 'Weather uses "hacer": "hace calor".'],
+  ['soy (cansad[oa]|enferm[oa]|aburrid[oa]|estresad[oa]|ocupad[oa]|nervios[oa]|content[oa])', 'estoy $1', 'Feelings and states use "estar": "estoy cansado".'],
+  ['es bien', 'está bien', '"Está bien" means "it\'s fine".'],
+  ['a el', 'al', '"a + el" always becomes "al".'],
+  ['de el', 'del', '"de + el" always becomes "del".'],
+  ['mucho gracias', 'muchas gracias', '"Gracias" is feminine plural: "muchas gracias".'],
+  ['muy mucho', 'muchísimo', 'Say "muchísimo" for "very much".'],
+  ['la problema', 'el problema', '"Problema" is masculine: "el problema".'],
+].map(([p, r, tip]) => [new RegExp(`(?<!\\p{L})${p}(?!\\p{L})`, 'giu'), r, tip]);
+
+function checkGrammar(text) {
+  let out = text, tip = null;
+  for (const [re, rep, t] of GRAMMAR) {
+    const next = out.replace(re, (...m) => {
+      const groups = m.slice(1, -2);
+      let r = rep.replace(/\$(\d)/g, (_, i) => groups[i - 1] || '');
+      if (/^\p{Lu}/u.test(m[0])) r = r.charAt(0).toUpperCase() + r.slice(1);
+      return r;
+    });
+    if (next !== out) { out = next; tip = tip || t; }
+  }
+  return out !== text ? { text: out, tip, label: 'Better' } : null;
+}
 
 function startFreeTalk(topic) {
-  P = { kind: 'talk', topic, msgs: [], typing: false, busy: false, turns: 0 };
-  openPlayer(); $('#pbarWrap').classList.add('hidden');
-  $('#topRight').innerHTML = '';
+  if (topic.random) topic = pick(TOPICS.filter(t => !t.random));
+  P = { kind: 'talk', topic, qi: 0, typing: false, busy: false, turns: 0, last: '' };
+  openPlayer(); $('#pbarWrap').classList.remove('hidden');
   body().innerHTML = `<div class="scene"><div class="e">${topic.e}</div><b>${esc(topic.t)}</b><span>Free talk with Lucía</span></div><div class="chat" id="chat"></div>`;
-  tutorTurn('(Begin the conversation now: greet me' + (S.name ? ` by name (${S.name})` : '') + ' and ask an easy opening question about the topic. No correction needed.)');
+  const first = topic.q[0];
+  const parts = topic.formal ? [[first[0], first[1]]] : [[`¡Hola${S.name ? ', ' + S.name : ''}!`, `Hi${S.name ? ', ' + S.name : ''}!`], [first[0], first[1]]];
+  lucia(parts);
 }
 
-function talkSystem(topic) {
-  return `You are Lucía, a warm, upbeat Spanish tutor from Mexico City, having a spoken conversation with a learner who is ${LEVELS[S.level] || LEVELS.new}.
-Conversation topic: ${topic.t === 'Surprise me' ? 'pick a fun everyday topic yourself' : topic.t + ' — ' + topic.s}.
-${S.accent === 'es-ES' ? 'Use Spain Spanish (vosotros, Spain vocabulary).' : 'Use Latin American Spanish.'}
-The learner's messages come from speech recognition, so ignore punctuation, capitalization and missing accents, and read through small transcription glitches.
-Keep the conversation going: reply in 1-2 short Spanish sentences and usually end with a question. Stay in character; never switch to English in "reply".
-If the learner's last message has a real grammar or vocabulary mistake, put a corrected natural version of their sentence in "correction" and a one-sentence English explanation in "tip". If they wrote English or mixed languages, put the Spanish way to say it in "correction". If their Spanish was fine, both are null.`;
-}
-
-async function tutorTurn(userText, shown) {
-  const chat = $('#chat');
-  if (shown) { const m = document.createElement('div'); m.className = 'msg u'; m.textContent = shown; chat.appendChild(m); }
-  P.msgs.push({ role: 'user', content: userText });
+function lucia(parts, delay = 0) {
+  const session = P, chat = $('#chat');
+  const es = parts.map(p => p[0]).join(' '), en = parts.map(p => p[1]).join(' ');
+  session.busy = true; talkDock();
   const typing = document.createElement('div'); typing.className = 'typing'; typing.innerHTML = '<i></i><i></i><i></i>';
-  chat.appendChild(typing); body().scrollTop = body().scrollHeight;
-  P.busy = true; talkDock();
-  const session = P;
-  try {
-    const { default: Anthropic } = await loadSDK();
-    const client = new Anthropic({ apiKey: S.apiKey, dangerouslyAllowBrowser: true });
-    const res = await client.beta.messages.create({
-      model: TUTOR_MODEL,
-      max_tokens: 2000,
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
-      output_config: { effort: 'low', format: { type: 'json_schema', schema: REPLY_SCHEMA } },
-      system: talkSystem(session.topic),
-      messages: session.msgs,
-    });
+  setTimeout(() => {
     if (P !== session) return;
-    typing.remove();
-    if (res.stop_reason === 'refusal') throw new Error('Lucía couldn\'t answer that one. Try saying something else.');
-    session.msgs.push({ role: 'assistant', content: res.content });
-    const txt = res.content.filter(b => b.type === 'text').map(b => b.text).join('');
-    let out; try { out = JSON.parse(txt); } catch { out = { reply: txt, translation: '', correction: null, tip: null }; }
-    if (out.correction && shown) {
-      const f = document.createElement('div'); f.className = 'fix';
-      f.innerHTML = `<b>Better</b>${esc(out.correction)}${out.tip ? `<span>${esc(out.tip)}</span>` : ''}`;
-      chat.appendChild(f);
-    }
-    const m = document.createElement('div'); m.className = 'msg t';
-    m.innerHTML = `${esc(out.reply)}${S.showEn && out.translation ? `<span class="tr">${esc(out.translation)}</span>` : ''}<div class="acts"><button data-a="play">🔊 Replay</button>${!S.showEn && out.translation ? '<button data-a="tr">Translate</button>' : ''}</div>`;
-    m.querySelector('[data-a="play"]').onclick = () => say(out.reply);
-    const tr = m.querySelector('[data-a="tr"]'); if (tr) tr.onclick = () => { tr.remove(); m.insertAdjacentHTML('beforeend', `<span class="tr">${esc(out.translation)}</span>`); };
-    chat.appendChild(m); body().scrollTop = body().scrollHeight;
-    session.busy = false; session.turns++;
-    if (session.turns > 1) markStreakOnce();
-    talkDock();
-    say(out.reply);
-  } catch (e) {
-    if (P !== session) return;
-    typing.remove();
-    session.msgs.pop(); // drop the unanswered message so the history stays valid
-    let msg = e && e.message ? e.message : String(e);
-    if (e && e.status === 401) msg = 'That API key didn\'t work. Check it in Profile → AI tutor key.';
-    else if (e && e.status === 429) msg = 'Too many requests right now — wait a moment and try again.';
-    else if (/import|fetch|network/i.test(msg)) msg = 'Couldn\'t reach the tutor. Check your connection and try again.';
-    const f = document.createElement('div'); f.className = 'fix'; f.style.alignSelf = 'stretch';
-    f.innerHTML = `<b>Connection problem</b>${esc(msg)}`; chat.appendChild(f);
-    session.busy = false; talkDock();
+    chat.appendChild(typing); body().scrollTop = body().scrollHeight;
+    setTimeout(() => {
+      if (P !== session) return;
+      typing.remove();
+      const m = document.createElement('div'); m.className = 'msg t';
+      m.innerHTML = `${esc(es)}${S.showEn ? `<span class="tr">${esc(en)}</span>` : ''}<div class="acts"><button data-a="play">🔊 Replay</button>${S.showEn ? '' : '<button data-a="tr">Translate</button>'}</div>`;
+      m.querySelector('[data-a="play"]').onclick = () => say(es);
+      const tr = m.querySelector('[data-a="tr"]'); if (tr) tr.onclick = () => { tr.remove(); m.insertAdjacentHTML('beforeend', `<span class="tr">${esc(en)}</span>`); };
+      chat.appendChild(m); body().scrollTop = body().scrollHeight;
+      session.last = es; session.busy = false;
+      $('#pbar').style.width = `${(session.qi / session.topic.q.length) * 100}%`;
+      say(es);
+      if (session.qi >= session.topic.q.length) talkEnd(); else talkDock();
+    }, 700);
+  }, delay);
+}
+
+function userSays(text) {
+  const chat = $('#chat');
+  chat.querySelectorAll('.task').forEach(t => t.remove());
+  const m = document.createElement('div'); m.className = 'msg u'; m.textContent = text; chat.appendChild(m);
+  const r = talkReply(text);
+  if (r.fix) {
+    const f = document.createElement('div'); f.className = 'fix';
+    f.innerHTML = `<b>${r.fix.label}</b>${esc(r.fix.text)}${r.fix.tip ? `<span>${esc(r.fix.tip)}</span>` : ''}`;
+    chat.appendChild(f);
   }
+  body().scrollTop = body().scrollHeight;
+  S.spoken++; if (!r.retry) P.turns++;
+  if (P.turns === 3) markStreakOnce();
+  lucia(r.parts, 300);
 }
 function markStreakOnce() { if (markStreak()) { save(); toast(`🔥 ${S.streak} day streak!`); } }
 
+function talkHint() {
+  const chat = $('#chat'); if (chat.querySelector('.task')) return;
+  const ex = fillName(P.topic.q[P.qi][2]);
+  const t = document.createElement('div'); t.className = 'task';
+  t.innerHTML = `<small>Idea</small><div class="hint-box" style="margin:6px 0 0"><b>${esc(ex)}</b><span>Say this, or answer in your own words</span></div>`;
+  chat.appendChild(t); body().scrollTop = body().scrollHeight;
+  if (!ex.includes('___')) say(ex);
+}
+
 function talkDock() {
-  if (P.busy) { dock().innerHTML = `<div class="dock"><div class="mic-cap">Lucía is thinking…</div></div>`; return; }
-  micDock({
-    replay: () => { const last = [...P.msgs].reverse().find(m => m.role === 'assistant'); if (last) { try { const t = last.content.filter(b => b.type === 'text').map(b => b.text).join(''); say(JSON.parse(t).reply); } catch {} } },
-    caption: 'Tap to reply in Spanish',
-    onResult: (alts) => { S.spoken++; tutorTurn(alts[0], alts[0]); },
-  });
+  if (P.busy) { dock().innerHTML = `<div class="dock"><div class="mic-cap">Lucía is talking…</div></div>`; return; }
+  micDock({ replay: () => say(P.last), hint: talkHint, caption: 'Tap to answer in Spanish', onResult: alts => userSays(alts[0]) });
+}
+
+function talkEnd() {
+  markStreakOnce(); save();
+  dock().innerHTML = `<div class="fb"><div class="fb-inner"><div class="head"><div class="score g">✓</div><div><h3>¡Conversación completa!</h3><p>You answered ${P.turns} times in Spanish.</p></div></div>
+    <button class="btn quiet" id="talkAgain">New topic</button><button class="btn" id="fbGo">Done</button></div></div>`;
+  $('#fbGo').onclick = closePlayer;
+  $('#talkAgain').onclick = () => { const cur = P.topic; startFreeTalk(pick(TOPICS.filter(t => !t.random && t !== cur))); };
 }
 
 /* ---------- Boot ---------- */

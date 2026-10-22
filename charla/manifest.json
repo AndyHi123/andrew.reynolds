@@ -1,7 +1,7 @@
 {
   "name": "Charla — Speak Spanish",
   "short_name": "Charla",
-  "description": "Speak Spanish out loud from day one with a friendly AI tutor",
+  "description": "Speak Spanish out loud from day one with a friendly tutor",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -1,6 +1,6 @@
 // Caches the app shell so it opens offline. Lesson progress lives in
 // localStorage on the device and is never touched by the service worker.
-const CACHE = 'charla-v1';
+const CACHE = 'charla-v2';
 const ASSETS = [
   './',
   './index.html',
