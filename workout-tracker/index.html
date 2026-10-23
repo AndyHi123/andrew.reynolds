@@ -400,6 +400,93 @@
     .chart-readout { font-size: 0.85rem; min-height: 1.3em; margin-bottom: 4px; }
     .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
 
+    /* Ranks */
+    .badge { display: block; flex-shrink: 0; }
+    .name-row { display: flex; align-items: center; gap: 8px; }
+    .rank-line {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .rank-line b { font-weight: 700; }
+    .rank-hero { text-align: center; padding: 20px 16px; }
+    .rank-hero .badge { margin: 0 auto 8px; }
+    .rank-hero-name { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em; }
+    .rank-sub { font-size: 0.82rem; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .tier-bar { height: 8px; background: var(--card-2); border-radius: 999px; overflow: hidden; margin-top: 12px; }
+    .tier-bar span { display: block; height: 100%; border-radius: 999px; }
+    .tier-next { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+    .rank-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .rank-row:last-child { border-bottom: none; }
+    .rank-row[data-ex] { cursor: pointer; }
+    .rank-row .grow { flex: 1; min-width: 0; }
+    .rank-row .title { font-size: 0.92rem; font-weight: 600; }
+    .rank-row .sub { font-size: 0.76rem; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .rank-row .tier-bar { margin-top: 6px; height: 5px; }
+    .ladder { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+    .ladder div {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      background: var(--card-2);
+      border-radius: 10px;
+      padding: 8px 4px;
+    }
+    .ladder b { font-size: 0.78rem; }
+    .text-input {
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 16px;
+      width: 100%;
+      -webkit-appearance: none;
+    }
+    .text-input:focus { outline: none; border-color: var(--accent); }
+    .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 12px; }
+    .profile-grid .segmented { margin: 0; }
+    .rank-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .rank-banner .t { font-weight: 700; }
+    .rank-banner .s { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+    .rankup { text-align: center; max-height: 85dvh; overflow-y: auto; }
+    .rankup h2 { font-size: 1.3rem; margin-bottom: 4px; }
+    .rankup .big-badge { display: flex; justify-content: center; margin: 4px 0 6px; animation: pop 0.4s ease-out; }
+    .xp-gain { color: var(--warn); font-weight: 800; font-size: 1.15rem; margin: 6px 0 2px; }
+    .change-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+      padding: 8px 0;
+      border-top: 1px solid var(--card-border);
+      font-size: 0.85rem;
+    }
+    .change-row .grow { flex: 1; min-width: 0; }
+    .change-row .arrow { color: var(--faint); }
+    .rankup .btn { margin-top: 14px; }
+    @keyframes pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .rankup .big-badge { animation: none; } }
+
     .dialog-backdrop {
       position: fixed;
       inset: 0;
@@ -489,9 +576,27 @@
       <div id="history-list"></div>
     </div>
 
+    <!-- RANKS VIEW -->
+    <div id="view-ranks" class="view">
+      <header><h1>Ranks</h1></header>
+      <div id="ranks-body"></div>
+    </div>
+
     <!-- SETTINGS VIEW -->
     <div id="view-settings" class="view">
       <header><h1>Settings</h1></header>
+
+      <div class="settings-section card">
+        <h3>Profile (for ranks)</h3>
+        <div class="profile-grid">
+          <input class="text-input" id="bw-input" inputmode="decimal" autocomplete="off" aria-label="Bodyweight">
+          <div class="segmented" id="sex-switch">
+            <button data-sex="male" class="plain">Male</button>
+            <button data-sex="female" class="plain">Female</button>
+          </div>
+        </div>
+        <p>Ranks compare your lifts to your bodyweight.</p>
+      </div>
 
       <div class="settings-section card">
         <h3>Weight Unit</h3>
@@ -560,10 +665,22 @@
     </div>
   </div>
 
+  <!-- Workout summary / rank-up -->
+  <div id="rankup" class="dialog-backdrop" role="dialog" aria-modal="true" aria-labelledby="rankup-title">
+    <div class="dialog rankup">
+      <div id="rankup-body"></div>
+      <button class="btn btn-primary" id="rankup-ok">Nice!</button>
+    </div>
+  </div>
+
   <nav class="bottom-nav">
     <button class="nav-item active" data-view="today">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
       Today
+    </button>
+    <button class="nav-item" data-view="ranks">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21h8m-4-4v4M7 4h10v5a5 5 0 01-10 0V4zM7 6H4a3 3 0 003 4m10-4h3a3 3 0 01-3 4"/></svg>
+      Ranks
     </button>
     <button class="nav-item" data-view="history">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -606,6 +723,58 @@
     const EX_BY_ID = Object.fromEntries(ALL_EXERCISES.map(e => [e.id, e]));
     const NEXT_DAY = { upper: 'lower', lower: 'rest', rest: 'upper' };
 
+    // ========== RANKS ==========
+    // Liftoff-style ranking: each lift gets a 1–1000 score from its best
+    // estimated 1RM (Epley, reps capped at 30) relative to bodyweight.
+    // Muscles average the lifts that train them; the overall rank averages
+    // the muscles.
+    const RANKS = [
+      { name: 'Wood',     min: 0,   c1: '#c08a5a', c2: '#6b4226' },
+      { name: 'Bronze',   min: 200, c1: '#e3a066', c2: '#8a4b1f' },
+      { name: 'Silver',   min: 300, c1: '#e2e8f0', c2: '#7c8798' },
+      { name: 'Gold',     min: 400, c1: '#fde047', c2: '#b7791f' },
+      { name: 'Platinum', min: 500, c1: '#99f6e4', c2: '#0f9488' },
+      { name: 'Diamond',  min: 600, c1: '#93c5fd', c2: '#2563eb' },
+      { name: 'Champion', min: 700, c1: '#d8b4fe', c2: '#7e22ce' },
+      { name: 'Titan',    min: 800, c1: '#fca5a5', c2: '#b91c1c' },
+      { name: 'Olympian', min: 900, c1: '#fde68a', c2: '#db2777' }
+    ];
+
+    // std = estimated 1RM ÷ bodyweight of an intermediate (Gold) male lifter.
+    // These are ballpark figures — machines differ from gym to gym.
+    const RANK_STD = {
+      u1: { std: 1.0,  region: 'upper', muscles: { chest: 1, triceps: 0.3, shoulders: 0.3 } },
+      u2: { std: 0.3,  region: 'upper', muscles: { shoulders: 1, triceps: 0.3 }, hint: 'Log the weight of one dumbbell' },
+      u3: { std: 0.9,  region: 'upper', muscles: { chest: 1, triceps: 1 } },
+      u4: { std: 0.12, region: 'upper', muscles: { shoulders: 1 } },
+      u5: { std: 0.55, region: 'upper', muscles: { back: 1, biceps: 0.3 } },
+      u6: { std: 0.9,  region: 'upper', muscles: { back: 1, biceps: 0.3 } },
+      u7: { std: 0.18, region: 'upper', muscles: { triceps: 1 } },
+      u8: { std: 0.3,  region: 'upper', muscles: { biceps: 1 } },
+      u9: { std: 0.8,  region: 'core',  muscles: { abs: 1 } },
+      l1: { std: 0.6,  region: 'lower', muscles: { hamstrings: 1 } },
+      l2: { std: 1.8,  region: 'lower', muscles: { quads: 1, glutes: 0.5 } },
+      l3: { std: 1.2,  region: 'lower', muscles: { quads: 1, glutes: 1 }, bwLoad: 0.6, hint: 'Log the total dumbbell weight (0 for bodyweight)' },
+      l4: { std: 1.0,  region: 'lower', muscles: { quads: 1 } },
+      l5: { std: 1.4,  region: 'lower', muscles: { calves: 1 } },
+      l6: { std: 15,   region: 'core',  muscles: { abs: 1 }, repsBased: true }
+    };
+
+    const MUSCLES = [
+      ['chest', 'Chest'], ['shoulders', 'Shoulders'], ['back', 'Back'], ['biceps', 'Biceps'],
+      ['triceps', 'Triceps'], ['abs', 'Abs'], ['quads', 'Quads'], ['hamstrings', 'Hamstrings'],
+      ['glutes', 'Glutes'], ['calves', 'Calves']
+    ];
+    const MUSCLE_NAME = Object.fromEntries(MUSCLES);
+
+    // Strength relative to an intermediate lifter → score
+    const ANCHORS = [[0, 0], [0.25, 50], [0.5, 200], [0.75, 300], [1, 400], [1.2, 500],
+                     [1.4, 600], [1.6, 700], [1.8, 800], [2, 900], [2.4, 1000]];
+    const SEX_FACTOR = {
+      male: { upper: 1, lower: 1, core: 1 },
+      female: { upper: 0.6, lower: 0.75, core: 0.85 }
+    };
+
     // ========== STORAGE ==========
     // Everything lives in localStorage on this device. v1 data under the
     // old key is migrated once and left in place as a backup.
@@ -617,7 +786,7 @@
       dayType: 'upper',
       sessions: [],   // { id, date, type, startedAt, finishedAt, ex: { [exId]: { sets:[{w,r}], note, legacy? } }, prs:[] }
       drafts: {},     // { upper|lower: { date, startedAt, ex: { [exId]: { sets:[{w,r,done}], note } } } }
-      settings: { unit: 'lb', rest: 120 }
+      settings: { unit: 'lb', rest: 120, bw: null, sex: 'male' }
     });
 
     let state = defaultState();
@@ -751,6 +920,171 @@
       return Math.max(0, ...(entry.sets || []).map(s => score(s, ex)));
     }
 
+    // ---------- Rank math ----------
+    const refBW = () => (unit() === 'kg' ? 82 : 180);
+    const hasBodyweight = () => num(state.settings.bw) > 0;
+    const bodyweight = () => (hasBodyweight() ? num(state.settings.bw) : refBW());
+
+    function relToScore(rel) {
+      if (!(rel > 0)) return 0;
+      for (let i = 1; i < ANCHORS.length; i++) {
+        const [x0, y0] = ANCHORS[i - 1], [x1, y1] = ANCHORS[i];
+        if (rel <= x1) return Math.max(1, Math.round(y0 + (rel - x0) / (x1 - x0) * (y1 - y0)));
+      }
+      return 1000;
+    }
+
+    function scoreToRel(sc) {
+      for (let i = 1; i < ANCHORS.length; i++) {
+        const [x0, y0] = ANCHORS[i - 1], [x1, y1] = ANCHORS[i];
+        if (sc <= y1) return x0 + (sc - y0) / (y1 - y0) * (x1 - x0);
+      }
+      return ANCHORS[ANCHORS.length - 1][0];
+    }
+
+    function stdFor(id) {
+      const r = RANK_STD[id];
+      return r.std * SEX_FACTOR[state.settings.sex === 'female' ? 'female' : 'male'][r.region];
+    }
+
+    const epley = (load, reps) => (reps === 1 ? load : load * (1 + Math.min(reps, 30) / 30));
+
+    // How strong one set is compared with an intermediate lifter (1 = Gold).
+    // Bodyweight is scaled allometrically (^2/3) so heavier lifters aren't favored.
+    function setRel(id, s) {
+      const r = RANK_STD[id];
+      if (!r || !s.r) return 0;
+      const bw = bodyweight();
+      if (r.repsBased) return s.r * (1 + (s.w || 0) / bw) / stdFor(id);
+      const load = (s.w || 0) + (r.bwLoad || 0) * bw;
+      if (load <= 0) return 0;
+      return epley(load, s.r) / bw * Math.cbrt(bw / refBW()) / stdFor(id);
+    }
+
+    const setScore = (id, s) => relToScore(setRel(id, s));
+
+    function computeRanks(sessions) {
+      const ex = {};
+      sessions.forEach(sess => Object.entries(sess.ex || {}).forEach(([id, e]) => {
+        (e.sets || []).forEach(s => {
+          const sc = setScore(id, s);
+          if (sc > (ex[id] || 0)) ex[id] = sc;
+        });
+      }));
+      const muscle = {};
+      MUSCLES.forEach(([m]) => {
+        let sum = 0, wsum = 0;
+        Object.entries(ex).forEach(([id, sc]) => {
+          const w = RANK_STD[id] && RANK_STD[id].muscles[m];
+          if (w) { sum += sc * w; wsum += w; }
+        });
+        if (wsum) muscle[m] = Math.round(sum / wsum);
+      });
+      const ms = Object.values(muscle);
+      const overall = ms.length ? Math.round(ms.reduce((a, b) => a + b, 0) / ms.length) : 0;
+      return { ex, muscle, overall, muscleCount: ms.length };
+    }
+
+    function rankIndex(sc) {
+      if (!sc) return -1;
+      let idx = 0;
+      RANKS.forEach((r, k) => { if (sc >= r.min) idx = k; });
+      return idx;
+    }
+    const rankOf = sc => RANKS[rankIndex(sc)] || null;
+    const rankName = sc => (rankOf(sc) ? rankOf(sc).name : 'Unranked');
+
+    function tierProgress(sc) {
+      const i = rankIndex(sc);
+      if (i < 0) return 0;
+      const lo = RANKS[i].min, hi = RANKS[i + 1] ? RANKS[i + 1].min : 1000;
+      return Math.min(1, (sc - lo) / (hi - lo));
+    }
+
+    // Weight (or reps) needed at a given rep count to reach the next rank
+    function nextTarget(id, sc, reps) {
+      const i = rankIndex(sc);
+      const next = RANKS[i + 1];
+      const r = RANK_STD[id];
+      if (i < 0 || !next || !r) return null;
+      const rel = scoreToRel(next.min);
+      const bw = bodyweight();
+      if (r.repsBased) return { rank: next, text: `${Math.ceil(rel * stdFor(id))} reps` };
+      const e1 = rel * stdFor(id) * bw / Math.cbrt(bw / refBW());
+      const load = reps === 1 ? e1 : e1 / (1 + Math.min(reps, 30) / 30);
+      const step = unit() === 'kg' ? 2.5 : 5;
+      const w = Math.ceil((load - (r.bwLoad || 0) * bw) / step) * step;
+      return { rank: next, text: w > 0 ? `${w} × ${reps}` : `BW × ${reps}` };
+    }
+
+    function targetReps(ex) {
+      const last = lastFor(ex.id);
+      const top = last && last.entry.sets && last.entry.sets[0];
+      if (top && top.r) return top.r;
+      const range = parseRange(ex.sets[0].target);
+      return range ? range[0] : 10;
+    }
+
+    let badgeSeq = 0;
+    const HEX = 'M20 2 L36 11 V29 L20 38 L4 29 V11 Z';
+    function badgeSVG(sc, size) {
+      const r = rankOf(sc);
+      if (!r) {
+        return `<svg class="badge" width="${size}" height="${size}" viewBox="0 0 40 40" aria-hidden="true">
+          <path d="${HEX}" fill="#172033" stroke="#475569" stroke-width="1.5" stroke-dasharray="3 2"/>
+          <text x="20" y="25" text-anchor="middle" font-size="13" font-weight="800" fill="#64748b">?</text></svg>`;
+      }
+      const gid = 'rg' + (++badgeSeq);
+      return `<svg class="badge" width="${size}" height="${size}" viewBox="0 0 40 40" role="img" aria-label="${r.name}">
+        <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="${r.c1}"/><stop offset="1" stop-color="${r.c2}"/>
+        </linearGradient></defs>
+        <path d="${HEX}" fill="url(#${gid})" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
+        <path d="M20 7 L31 13.5 V17" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" stroke-linecap="round"/>
+        <text x="20" y="25.5" text-anchor="middle" font-size="14" font-weight="800" fill="#fff"
+              stroke="rgba(15,23,42,0.55)" stroke-width="2.5" paint-order="stroke">${r.name[0]}</text></svg>`;
+    }
+
+    function rankLabel(sc) {
+      const r = rankOf(sc);
+      return r ? `<b style="color:${r.c1}">${r.name}</b>` : '<b>Unranked</b>';
+    }
+
+    function tierBar(sc) {
+      const r = rankOf(sc);
+      return `<div class="tier-bar"><span style="width:${Math.round(tierProgress(sc) * 100)}%;background:${r ? r.c2 : 'transparent'}"></span></div>`;
+    }
+
+    // ---------- XP, level, streak ----------
+    function xpForSession(s) {
+      const sets = Object.values(s.ex || {}).reduce((n, e) => n + (e.sets ? e.sets.length : 0), 0);
+      return 25 + sets * 10 + (s.prs ? s.prs.length : 0) * 50 + (s.rankUps || 0) * 100;
+    }
+
+    function levelInfo() {
+      const xp = state.sessions.reduce((n, s) => n + xpForSession(s), 0);
+      let lvl = 1;
+      while (xp >= 50 * lvl * (lvl + 1)) lvl++;
+      const base = 50 * (lvl - 1) * lvl, next = 50 * lvl * (lvl + 1);
+      return { xp, lvl, into: xp - base, span: next - base };
+    }
+
+    function weekKey(iso) {
+      const d = new Date(iso + 'T12:00:00');
+      d.setDate(d.getDate() - (d.getDay() + 6) % 7);
+      return localDate(d);
+    }
+
+    // Weeks in a row with at least one workout (this week counts once you train)
+    function weekStreak() {
+      const weeks = new Set(state.sessions.map(s => weekKey(s.date)));
+      const d = new Date(weekKey(localDate()) + 'T12:00:00');
+      if (!weeks.has(localDate(d))) d.setDate(d.getDate() - 7);
+      let n = 0;
+      while (weeks.has(localDate(d))) { n++; d.setDate(d.getDate() - 7); }
+      return n;
+    }
+
     function sortedSessions() {
       return [...state.sessions].sort((a, b) =>
         (a.date + (a.finishedAt || '')).localeCompare(b.date + (b.finishedAt || '')));
@@ -799,6 +1133,17 @@
     }
 
     // ========== RENDER: TODAY ==========
+    let currentRanks = { ex: {}, muscle: {}, overall: 0, muscleCount: 0 };
+
+    function exRankLine(ex) {
+      const sc = currentRanks.ex[ex.id] || 0;
+      const hint = RANK_STD[ex.id] && RANK_STD[ex.id].hint ? ` · ${esc(RANK_STD[ex.id].hint)}` : '';
+      if (!sc) return `${rankLabel(0)} · log a set to get ranked${hint}`;
+      const t = nextTarget(ex.id, sc, targetReps(ex));
+      return `${rankLabel(sc)} ${sc}` +
+        (t ? ` · Next: <b style="color:${t.rank.c1}">${t.rank.name}</b> at ${esc(t.text)}` : ' · Top rank!') + hint;
+    }
+
     function renderToday() {
       $('date-label').textContent = formatDate(localDate());
       document.querySelectorAll('#day-switch button').forEach(b =>
@@ -820,6 +1165,7 @@
         banner.innerHTML = '';
       }
 
+      currentRanks = computeRanks(state.sessions);
       $('exercise-list').innerHTML = PROGRAM[state.dayType].map(cardHTML).join('');
       updateProgress();
     }
@@ -861,7 +1207,7 @@
         <div class="card ex-card ${allDone ? 'completed' : ''}" data-ex="${ex.id}">
           <div class="exercise-header">
             <div>
-              <div class="exercise-name">${esc(ex.name)}</div>
+              <div class="name-row">${badgeSVG(currentRanks.ex[ex.id] || 0, 26)}<div class="exercise-name">${esc(ex.name)}</div></div>
               <div class="targets">${entry.sets.length} set${entry.sets.length === 1 ? '' : 's'} · ${esc(targetText)} reps</div>
               ${ex.notes ? `<div class="notes">${esc(ex.notes)}</div>` : ''}
             </div>
@@ -870,6 +1216,7 @@
             </button>
           </div>
           <div class="last-box">${lastHTML}</div>
+          <div class="rank-line">${exRankLine(ex)}</div>
           <div class="set-grid set-head"><span>Set</span><span>${ex.bodyweight ? '+' + unit() : unit()}</span><span>Reps</span><span></span></div>
           <div class="set-grid sets">${rows}</div>
           <div class="card-actions">
@@ -959,6 +1306,11 @@
           }
           s.done = true;
           startRest();
+          const setSc = setScore(ex.id, { w: num(s.w), r: Math.round(num(s.r)) || 0 });
+          const cur = currentRanks.ex[ex.id] || 0;
+          if (rankIndex(setSc) > rankIndex(cur)) {
+            showToast(`🔥 ${rankName(setSc)}-level set! Finish the workout to rank up`);
+          }
         } else {
           s.done = false;
         }
@@ -1007,6 +1359,7 @@
       const type = state.dayType;
       const draft = getDraft(type, false);
       const ex = {};
+      let summary = null;
 
       if (draft) {
         Object.entries(draft.ex).forEach(([id, e]) => {
@@ -1029,7 +1382,9 @@
           const prevBest = Math.max(0, ...historyFor(id).map(h => bestScore(h.entry, def)));
           if (prevBest > 0 && bestScore(e, def) > prevBest) prs.push(id);
         });
-        state.sessions.push({
+        const before = computeRanks(state.sessions);
+        const levelBefore = levelInfo().lvl;
+        const session = {
           id: uid(),
           date: localDate(),
           type,
@@ -1037,9 +1392,13 @@
           finishedAt: new Date().toISOString(),
           ex,
           prs
-        });
+        };
+        state.sessions.push(session);
+        const after = computeRanks(state.sessions);
+        const changes = rankChanges(before, after);
+        session.rankUps = changes.filter(c => c.kind === 'ex' && c.from > 0).length;
         delete state.drafts[type];
-        showToast(prs.length ? `Saved ✓ — ${prs.length} new PR${prs.length > 1 ? 's' : ''} 🎉` : 'Workout saved ✓');
+        summary = { session, before, after, changes, levelBefore };
       }
 
       state.dayType = NEXT_DAY[type];
@@ -1047,7 +1406,63 @@
       stopRest();
       renderToday();
       window.scrollTo(0, 0);
+      if (summary) showSummary(summary);
     }
+
+    function rankChanges(before, after) {
+      const out = [];
+      if (rankIndex(after.overall) > rankIndex(before.overall)) {
+        out.push({ kind: 'overall', name: 'Overall', from: before.overall, to: after.overall });
+      }
+      MUSCLES.forEach(([m, label]) => {
+        if (rankIndex(after.muscle[m]) > rankIndex(before.muscle[m])) {
+          out.push({ kind: 'muscle', name: label, from: before.muscle[m] || 0, to: after.muscle[m] });
+        }
+      });
+      Object.keys(after.ex).forEach(id => {
+        if (rankIndex(after.ex[id]) > rankIndex(before.ex[id])) {
+          out.push({ kind: 'ex', name: EX_BY_ID[id].name, from: before.ex[id] || 0, to: after.ex[id] });
+        }
+      });
+      return out;
+    }
+
+    function showSummary({ session, before, after, changes, levelBefore }) {
+      const lv = levelInfo();
+      const xp = xpForSession(session);
+      const overallUp = changes.find(c => c.kind === 'overall');
+      // First-time lift ranks are summed up in one line; real rank-ups get a row each
+      const ups = changes.filter(c => c.kind !== 'overall' && !(c.kind === 'ex' && !c.from));
+      const firstRanked = changes.filter(c => c.kind === 'ex' && !c.from).length;
+      const prs = session.prs.length;
+      const title = overallUp ? 'Rank up!' : ups.length ? 'New ranks!' : 'Workout complete';
+      $('rankup-body').innerHTML = `
+        <div class="big-badge">${badgeSVG(after.overall, 84)}</div>
+        <h2 id="rankup-title">${title}</h2>
+        <div class="rank-sub">${overallUp
+          ? `Overall: ${esc(rankName(overallUp.from))} → ${rankLabel(overallUp.to)}`
+          : `Overall ${rankLabel(after.overall)} · ${after.overall} / 1000`}</div>
+        <div class="xp-gain">+${xp} XP</div>
+        <div class="rank-sub">Level ${lv.lvl}${lv.lvl > levelBefore ? ' — level up! ⬆️' : ''} · ${lv.into} / ${lv.span} XP</div>
+        <div class="tier-bar"><span style="width:${Math.round(lv.into / lv.span * 100)}%;background:var(--warn)"></span></div>
+        ${prs ? `<div class="rank-sub" style="margin-top:8px">🏆 ${prs} new PR${prs > 1 ? 's' : ''}</div>` : ''}
+        <div style="margin-top:12px">
+          ${ups.map(c => `
+            <div class="change-row">
+              ${badgeSVG(c.from, 26)}<span class="arrow">→</span>${badgeSVG(c.to, 30)}
+              <div class="grow">
+                <div style="font-weight:600">${esc(c.name)}</div>
+                <div class="rank-sub">${c.from ? esc(rankName(c.from)) + ' → ' : 'New: '}${rankLabel(c.to)}</div>
+              </div>
+            </div>`).join('')}
+          ${firstRanked ? `<div class="change-row"><div class="grow rank-sub">${firstRanked} lift${firstRanked > 1 ? 's' : ''} ranked for the first time — see the Ranks tab</div></div>` : ''}
+        </div>`;
+      $('rankup').classList.add('show');
+      $('rankup-ok').focus();
+    }
+
+    $('rankup-ok').addEventListener('click', () => $('rankup').classList.remove('show'));
+    $('rankup').addEventListener('click', e => { if (e.target.id === 'rankup') $('rankup').classList.remove('show'); });
 
     // ========== REST TIMER ==========
     let restEnd = 0;
@@ -1189,6 +1604,21 @@
     });
 
     // ========== EXERCISE DETAIL SHEET ==========
+    function rankBannerHTML(ex) {
+      const sc = computeRanks(state.sessions).ex[ex.id] || 0;
+      const t = sc ? nextTarget(ex.id, sc, targetReps(ex)) : null;
+      return `
+        <div class="rank-banner">
+          ${badgeSVG(sc, 44)}
+          <div>
+            <div class="t">${rankLabel(sc)}${sc ? ` · ${sc} / 1000` : ''}</div>
+            <div class="s">${sc
+              ? (t ? `Next: <b style="color:${t.rank.c1}">${t.rank.name}</b> at ${esc(t.text)}` : 'Top rank reached')
+              : 'Log a set to get ranked'}</div>
+          </div>
+        </div>`;
+    }
+
     function openExercise(exId) {
       const ex = EX_BY_ID[exId];
       const h = historyFor(exId);
@@ -1229,6 +1659,7 @@
           </div>
           <button class="icon-btn" id="sheet-close" aria-label="Close">✕</button>
         </div>
+        ${rankBannerHTML(ex)}
         ${statsHTML}
         ${chartHTML}
         ${h.length ? `<div class="card" style="padding:4px 14px">${rows}</div>` : '<div class="empty">No history yet for this exercise.</div>'}`;
@@ -1286,12 +1717,131 @@
       if (e.target.id === 'sheet' || e.target.closest('#sheet-close')) closeSheet();
     });
 
+    // ========== RANKS VIEW ==========
+    function renderRanks() {
+      const R = computeRanks(state.sessions);
+      const lv = levelInfo();
+      const streak = weekStreak();
+      const top = rankOf(R.overall);
+      const nextR = RANKS[rankIndex(R.overall) + 1];
+
+      const profileHTML = hasBodyweight() ? '' : `
+        <div class="card">
+          <div class="exercise-name">Set up your profile</div>
+          <p class="rank-sub">Ranks compare your lifts to your bodyweight. Until you add it, ranks assume ${refBW()} ${unit()}.</p>
+          <div class="profile-grid">
+            <input class="text-input" id="rp-bw" inputmode="decimal" autocomplete="off" placeholder="Bodyweight (${unit()})" aria-label="Bodyweight">
+            <div class="segmented" id="rp-sex">
+              <button data-sex="male" class="plain ${state.settings.sex !== 'female' ? 'active' : ''}">Male</button>
+              <button data-sex="female" class="plain ${state.settings.sex === 'female' ? 'active' : ''}">Female</button>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="rp-save">Save profile</button>
+        </div>`;
+
+      const hero = `
+        <div class="card rank-hero">
+          ${badgeSVG(R.overall, 92)}
+          <div class="rank-hero-name" style="color:${top ? top.c1 : 'var(--muted)'}">${top ? top.name : 'Unranked'}</div>
+          <div class="rank-sub">${R.overall
+            ? `Overall ${R.overall} / 1000 · ${R.muscleCount} of ${MUSCLES.length} muscles ranked`
+            : 'Finish a workout to get your first rank'}</div>
+          ${R.overall ? tierBar(R.overall) : ''}
+          ${R.overall ? `<div class="tier-next">${nextR ? `${nextR.min - R.overall} points to <b style="color:${nextR.c1}">${nextR.name}</b>` : 'Highest rank reached'}</div>` : ''}
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="k">Level</div><div class="v">${lv.lvl}</div>
+            <div class="tier-bar" style="height:4px;margin-top:6px"><span style="width:${Math.round(lv.into / lv.span * 100)}%;background:var(--warn)"></span></div></div>
+          <div class="stat"><div class="k">Total XP</div><div class="v">${lv.xp.toLocaleString()}</div></div>
+          <div class="stat"><div class="k">Week streak</div><div class="v">${streak}${streak ? ' 🔥' : ''}</div></div>
+        </div>`;
+
+      const muscles = `
+        <div class="group-title">Muscles</div>
+        <div class="card" style="padding:4px 14px">
+          ${MUSCLES.map(([m, label]) => {
+            const sc = R.muscle[m] || 0;
+            return `
+              <div class="rank-row">
+                ${badgeSVG(sc, 32)}
+                <div class="grow">
+                  <div class="title">${label}</div>
+                  <div class="sub">${rankLabel(sc)}${sc ? ` · ${sc}` : ''}</div>
+                  ${sc ? tierBar(sc) : ''}
+                </div>
+              </div>`;
+          }).join('')}
+        </div>`;
+
+      const lifts = ['upper', 'lower'].map(type => `
+        <div class="group-title">${type === 'upper' ? 'Upper' : 'Lower'} lifts</div>
+        <div class="card" style="padding:4px 14px">
+          ${PROGRAM[type].map(ex => {
+            const sc = R.ex[ex.id] || 0;
+            const t = sc ? nextTarget(ex.id, sc, targetReps(ex)) : null;
+            return `
+              <div class="rank-row" data-ex="${ex.id}">
+                ${badgeSVG(sc, 32)}
+                <div class="grow">
+                  <div class="title">${esc(ex.name)}</div>
+                  <div class="sub">${rankLabel(sc)}${sc ? ` · ${sc}` : ''}${t ? ` · Next: ${esc(t.text)}` : ''}</div>
+                </div>
+                <span class="chev">›</span>
+              </div>`;
+          }).join('')}
+        </div>`).join('');
+
+      const ladder = `
+        <div class="group-title">How ranks work</div>
+        <div class="card">
+          <p class="rank-sub" style="line-height:1.5">
+            Every set is turned into an estimated one-rep max and scored from 1 to 1000 against your
+            bodyweight. Your best set sets each lift's rank. Muscle ranks average the lifts that train
+            them, and your overall rank averages your muscles. Ranks never go down.
+          </p>
+          <div class="ladder">
+            ${RANKS.map(r => `<div>${badgeSVG(r.min || 1, 30)}<b style="color:${r.c1}">${r.name}</b>${r.min || 1}+</div>`).join('')}
+          </div>
+          <p class="rank-sub" style="margin-top:10px">
+            XP: 25 per workout, 10 per set, 50 per PR, 100 per lift rank-up.
+          </p>
+        </div>`;
+
+      $('ranks-body').innerHTML = profileHTML + hero + muscles + lifts + ladder;
+    }
+
+    $('ranks-body').addEventListener('click', e => {
+      const sexBtn = e.target.closest('#rp-sex button');
+      if (sexBtn) {
+        document.querySelectorAll('#rp-sex button').forEach(b => b.classList.toggle('active', b === sexBtn));
+        return;
+      }
+      if (e.target.closest('#rp-save')) {
+        const bw = num($('rp-bw').value);
+        if (!(bw > 0)) { showToast('Enter your bodyweight', true); $('rp-bw').focus(); return; }
+        const active = document.querySelector('#rp-sex button.active');
+        state.settings.bw = bw;
+        state.settings.sex = active ? active.dataset.sex : 'male';
+        saveState();
+        renderRanks();
+        showToast('Profile saved ✓');
+        return;
+      }
+      const row = e.target.closest('.rank-row[data-ex]');
+      if (row) openExercise(row.dataset.ex);
+    });
+
     // ========== SETTINGS ==========
     function renderSettings() {
       document.querySelectorAll('#unit-switch button').forEach(b =>
         b.classList.toggle('active', b.dataset.unit === state.settings.unit));
       document.querySelectorAll('#rest-switch button').forEach(b =>
         b.classList.toggle('active', Number(b.dataset.rest) === Number(state.settings.rest)));
+      document.querySelectorAll('#sex-switch button').forEach(b =>
+        b.classList.toggle('active', b.dataset.sex === (state.settings.sex || 'male')));
+      const bwInput = $('bw-input');
+      bwInput.placeholder = `Bodyweight (${unit()})`;
+      if (document.activeElement !== bwInput) bwInput.value = state.settings.bw || '';
 
       const n = state.sessions.length;
       const info = $('storage-info');
@@ -1304,6 +1854,20 @@
         }).catch(() => {});
       }
     }
+
+    $('bw-input').addEventListener('input', e => {
+      const bw = num(e.target.value);
+      state.settings.bw = bw > 0 ? bw : null;
+      saveState();
+    });
+
+    $('sex-switch').addEventListener('click', e => {
+      const b = e.target.closest('button[data-sex]');
+      if (!b) return;
+      state.settings.sex = b.dataset.sex;
+      saveState();
+      renderSettings();
+    });
 
     $('unit-switch').addEventListener('click', e => {
       const b = e.target.closest('button[data-unit]');
@@ -1377,6 +1941,7 @@
         n.classList.toggle('active', n.dataset.view === name));
       if (name === 'history') renderHistory();
       if (name === 'settings') renderSettings();
+      if (name === 'ranks') renderRanks();
       if (name === 'today') renderToday();
       window.scrollTo(0, 0);
     }
